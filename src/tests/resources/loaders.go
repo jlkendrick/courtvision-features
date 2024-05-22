@@ -1,7 +1,7 @@
 package loaders
 
 import (
-	helper "main/functions"
+	helper "streaming-optimization/functions"
 	"encoding/json"
 	"fmt"
 	"os"

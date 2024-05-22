@@ -3,8 +3,8 @@ package tests
 import (
 	// "fmt"
 	"fmt"
-	. "main/functions"
-	loaders "main/tests/resources"
+	. "streaming-optimization/functions"
+	loaders "streaming-optimization/tests/resources"
 	"math/rand"
 	"testing"
 	"time"
