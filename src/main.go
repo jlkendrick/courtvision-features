@@ -26,6 +26,7 @@ func main() {
 		w.Header().Set("Access-Control-Allow-Origin", "*")
 		
 		var request helper.ReqBody
+		fmt.Println(r.Body)
 		err := json.NewDecoder(r.Body).Decode(&request)
 		if err != nil {
 			fmt.Println(err)
@@ -88,7 +89,6 @@ func OptimizeStreaming(req helper.ReqBody) []helper.Gene {
 	population := make([]helper.Chromosome, size)
 	helper.CreateInitialPopulation(size, population, free_agents, free_positions, week, streamable_players)
 
-
 	comapare_roster := helper.Chromosome{Genes: make([]helper.Gene, helper.ScheduleMap[week].GameSpan + 1), FitnessScore: 0, TotalAcquisitions: 0, CumProbTracker: 0.0, DroppedPlayers: make(map[string]helper.DroppedPlayer)}
 	for i := 0; i < helper.ScheduleMap[week].GameSpan + 1; i++ {
 		comapare_roster.Genes[i] = helper.Gene{Roster: make(map[string]helper.Player), NewPlayers: make(map[string]helper.Player), Day: i, Acquisitions: 0}
@@ -106,7 +106,7 @@ func OptimizeStreaming(req helper.ReqBody) []helper.Gene {
 	// population = loaders.LoadInitPop("tests/resources/mock_initpop.json")
 
 	// Run the genetic algorithm for 50 generations
-	for i := 0; i < 10; i++ {
+	for i := 0; i < 50; i++ {
 
 		// Score fitness of initial population and get total acquisitions
 		for i := 0; i < len(population); i++ {

@@ -7,15 +7,14 @@ def load_json_file(file_path):
         data = json.load(file)
     return data
 
-json_file_path = "/Users/jameskendrick/fbball/static/schedule.json"
+json_file_path = "/Users/jameskendrick/Code/cv/stopz/src/static/schedule.json"
 data = load_json_file(json_file_path)
 
 schedule = {}
-cur_week = 0
 passed = False
 weeks = data["leagueSchedule"]["weeks"]
 for week in weeks[:-1]:
-    cur_week += 1
+    cur_week = week["weekNumber"]
     if cur_week == 17:
         passed = True
         continue
@@ -44,7 +43,7 @@ game_dates = data["leagueSchedule"]["gameDates"]
 cur_week = 1
 date_format = "%m/%d/%Y %H:%M:%S"
 
-games_in_week = defaultdict(list)
+games_in_week = defaultdict(dict)
 for game_date in game_dates:
     test_date = datetime.strptime(game_date["gameDate"], date_format)
     test_date = test_date.strftime("%m/%d/%Y")
@@ -56,15 +55,17 @@ for game_date in game_dates:
     elif test_date <= week_end_date:
         days_since = (test_date - week_start_date).days
         for game in game_date["games"]:
-            games_in_week[game["homeTeam"]["teamTricode"]].append(days_since)
-            games_in_week[game["awayTeam"]["teamTricode"]].append(days_since)
+            games_in_week[game["homeTeam"]["teamTricode"]][int(days_since)] = True
+            games_in_week[game["awayTeam"]["teamTricode"]][int(days_since)] = True
     else:
         schedule[cur_week]["games"] = games_in_week
-        games_in_week = defaultdict(list)
+        games_in_week = defaultdict(dict)
         cur_week += 1
+        if cur_week == 25:
+            break
         for game in game_date["games"]:
-            games_in_week[game["homeTeam"]["teamTricode"]].append(0)
-            games_in_week[game["awayTeam"]["teamTricode"]].append(0)
+            games_in_week[game["homeTeam"]["teamTricode"]][0] = True
+            games_in_week[game["awayTeam"]["teamTricode"]][0] = True
 
-with open("/Users/jameskendrick/fbball/static/schedule.json", "w") as file:
+with open("//Users/jameskendrick/Code/cv/stopz/src/static/schedule.json", "w") as file:
     json.dump(schedule, file, indent=4)
