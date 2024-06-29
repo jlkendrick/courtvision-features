@@ -9,6 +9,27 @@ type Player struct {
 	Injured        bool     `json:"injured"`
 }
 
+// Functions that return the player's fields
+func (p Player) GetName() string {
+	return p.Name
+}
+
+func (p Player) GetAvgPoints() float64 {
+	return p.AvgPoints
+}
+
+func (p Player) GetTeam() string {
+	return p.Team
+}
+
+func (p Player) GetValidPositions() []string {
+	return p.ValidPositions
+}
+
+func (p Player) GetInjured() bool {
+	return p.Injured
+}
+
 // Function that returns whether a player plays a certain position
 func (p *Player) PlaysPosition(position string) bool {
 	for _, valid_position := range p.ValidPositions {
