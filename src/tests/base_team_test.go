@@ -3,6 +3,7 @@ package tests
 import (
 	"fmt"
 	d "streaming-optimization/data"
+	l "streaming-optimization/tests/resources"
 	"streaming-optimization/team"
 	"testing"
 )
@@ -25,7 +26,9 @@ func TestBTInitWAPI(t *testing.T) {
 	BTFieldValidator[d.Player](bt.StreamablePlayers, t, "Vince Williams Jr.", "SG", 7, "MEM", "StreamablePlayers")
 	BTFieldValidator[d.Player](bt.OptimalSlotting, t, "Anthony Edwards", "SG", 7, "MIN", "OptimalSlotting")
 	BTFieldValidator[d.Player](bt.UnusedPositions, t, "Anthony Edwards", "SG", 7, "MIN", "UnusedPositions")
-
+	if bt.Week != week {
+		t.Errorf("Week is incorrect")
+	}
 }
 
 func TestBTInitWOAPI(t *testing.T) {
@@ -40,7 +43,60 @@ func TestBTInitWOAPI(t *testing.T) {
 	BTFieldValidator[d.Player](bt.StreamablePlayers, t, "Vince Williams Jr.", "SG", 7, "MEM", "StreamablePlayers")
 	BTFieldValidator[d.Player](bt.OptimalSlotting, t, "Anthony Edwards", "SG", 7, "MIN", "OptimalSlotting")
 	BTFieldValidator[d.Player](bt.UnusedPositions, t, "Anthony Edwards", "SG", 7, "MIN", "UnusedPositions")
+	if bt.Week != week {
+		t.Errorf("Week is incorrect")
+	}
 
+}
+
+func TestBTFetchData(t *testing.T) {
+	// Test the FetchData function
+	league_id := 424233486
+	espn_s2 := ""
+	swid := ""
+	team_name := "James's Scary Team"
+	year := 2024
+	fa_count := 100
+	roster_map, free_agents := d.FetchData(league_id, espn_s2, swid, team_name, year, fa_count)
+
+	// Validate fields
+	BTFieldValidator[d.Player](roster_map, t, "Anthony Edwards", "SG", 7, "MIN", "RosterMap")
+	BTFieldValidator[d.Player](free_agents, t, "Naz Reid", "PF", 6, "MIN", "FreeAgents")
+
+}
+
+func TestBTOptimizeSlottingAndStreamablePlayers(t *testing.T) {
+	// Test the OptimizeSlotting function
+	week := "17"
+	threshold := 30.0
+	roster_map := l.LoadRosterMap("/Users/jameskendrick/Code/cv/stopz/src/tests/resources/mock_roster.json")
+	free_agents := l.LoadFreeAgents("/Users/jameskendrick/Code/cv/stopz/src/tests/resources/mock_freeagents.json")
+	bt := &team.BaseTeam{
+		RosterMap: roster_map,
+		FreeAgents: free_agents,
+	}
+	bt.OptimizeSlotting(week, threshold)
+
+	// Validate field
+	BTFieldValidator[d.Player](bt.OptimalSlotting, t, "Anthony Edwards", "SG", 7, "MIN", "OptimalSlotting")
+	BTFieldValidator[d.Player](bt.StreamablePlayers, t, "Vince Williams Jr.", "SG", 7, "MEM", "StreamablePlayers")
+}
+
+func TestBTFindUnusedPositions(t *testing.T) {
+	// Test the FindUnusedPositions function
+	week := "17"
+	threshold := 30.0
+	roster_map := l.LoadRosterMap("/Users/jameskendrick/Code/cv/stopz/src/tests/resources/mock_roster.json")
+	free_agents := l.LoadFreeAgents("/Users/jameskendrick/Code/cv/stopz/src/tests/resources/mock_freeagents.json")
+	bt := &team.BaseTeam{
+		RosterMap: roster_map,
+		FreeAgents: free_agents,
+	}
+	bt.OptimizeSlotting(week, threshold)
+	bt.FindUnusedPositions()
+
+	// Validate field
+	BTFieldValidator[d.Player](bt.UnusedPositions, t, "", "", 0, "", "UnusedPositions")
 }
 
 type PlayerInterface interface {
@@ -51,7 +107,7 @@ type PlayerInterface interface {
 	GetInjured() 		bool
 }
 
-func BTFieldValidator[P PlayerInterface, S string, I int](collection interface{}, t *testing.T, name string, position string, num_positions int, team string, field string) {
+func BTFieldValidator[P PlayerInterface, S string, I int, B bool](collection interface{}, t *testing.T, name string, position string, num_positions int, team string, field string) {
 	found_player := false
 	switch c := collection.(type) {
 	case map[S]P:
@@ -128,21 +184,11 @@ func BTFieldValidator[P PlayerInterface, S string, I int](collection interface{}
 				}
 			}
 		}
-	case map[I][]S:
+	case map[I]map[S]B:
 		// UnusedPositions
 		fmt.Println("Testing", field)
 		if len(c) == 0 {
 			t.Errorf(field, "is empty")
-		}
-		// Only check is that there are no duplicate positions in each slice
-		for _, day := range c {
-			positions_map := make(map[S]bool)
-			for _, pos := range day {
-				if _, ok := positions_map[pos]; ok {
-					t.Errorf("Duplicate position in UnusedPositions")
-				}
-				positions_map[pos] = true
-			}
 		}
 	}
 }

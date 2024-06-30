@@ -75,6 +75,7 @@ func main() {
 	// Initialize the BaseTeam object
 	bt := t.InitBaseTeam(league_id, espn_s2, swid, team_name, year, fa_count, week, threshold)
 	population := p.InitPopulation(bt, 25)
+	fmt.Println("Population size:", len(population.Chromosomes))
 
 }
 

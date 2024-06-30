@@ -12,7 +12,7 @@ type BaseTeam struct {
 	RosterMap map[string]d.Player
 	FreeAgents []d.Player
 	OptimalSlotting map[int]map[string]d.Player
-	UnusedPositions map[int][]string
+	UnusedPositions map[int]map[string]bool
 	StreamablePlayers []d.Player
 	Week string
 }
@@ -37,6 +37,8 @@ func InitBaseTeamMock(week string, threshold float64) *BaseTeam {
 	bt.FreeAgents = l.LoadFreeAgents("/Users/jameskendrick/Code/cv/stopz/src/tests/resources/mock_freeagents.json")
 	bt.OptimizeSlotting(week, threshold)
 	bt.FindUnusedPositions()
+	bt.Week = week
+
 	return bt
 }
 
@@ -72,13 +74,12 @@ func (t *BaseTeam) OptimizeSlotting(week string, threshold float64) {
 		return_table[i] = t.GetAvailableSlots(sorted_good_players, i, week)
 	}
 
-	t.OptimalSlotting = return_table
-
 	// Sort the streamable players by average points
 	sort.Slice(streamable_players, func(i, j int) bool {
 		return streamable_players[i].AvgPoints > streamable_players[j].AvgPoints
 	})
 	t.StreamablePlayers = streamable_players
+	t.OptimalSlotting = return_table
 }
 
 // Struct for keeping track of state across recursive function calls to allow for early exit
@@ -249,26 +250,24 @@ func (t *BaseTeam) FindUnusedPositions() {
 	order := []string{"PG", "SG", "SF", "PF", "C", "G", "F", "UT1", "UT2", "UT3"}
 
 	// Create map to keep track of unused positions
-	unused_positions := make(map[int][]string)
+	unused_positions := make(map[int]map[string]bool)
 
 	// Loop through each optimal slotting and add unused positions to map
 	for day, schedule := range t.OptimalSlotting {
 
 		// Initialize map for day if it doesn't exist
 		if unused_positions[day] == nil {
-			unused_positions[day] = []string{}
+			unused_positions[day] = make(map[string]bool)
 		}
 		
 		for _, pos := range order {
 			
 			// If the position is empty, add it to the unused positions
 			if player := schedule[pos]; player.Name == "" {
-				unused_positions[day] = append(unused_positions[day], pos)
+				unused_positions[day][pos] = true
 			}
 		}
 	}
-	f;sakfa;ksd
-	// Putting error here to remind me to convert the unused positions to a map[int]map[string]bool
 	
 	t.UnusedPositions = unused_positions
 }
