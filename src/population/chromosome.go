@@ -23,7 +23,8 @@ func InitChromosome(bt *t.BaseTeam, rng *rand.Rand) *Chromosome {
 
 	// Create a gene for each day in the week
 	for i := 0; i <= d.ScheduleMap.Schedule[bt.Week].GameSpan; i++ {
-		chromosome.Genes[i] = InitGene(bt, i, rng)
+		gene := InitGene(bt, i, rng)
+		chromosome.Genes[i] = gene
 	}
 
 	return chromosome

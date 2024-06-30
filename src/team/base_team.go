@@ -73,6 +73,11 @@ func (t *BaseTeam) OptimizeSlotting(week string, threshold float64) {
 	}
 
 	t.OptimalSlotting = return_table
+
+	// Sort the streamable players by average points
+	sort.Slice(streamable_players, func(i, j int) bool {
+		return streamable_players[i].AvgPoints > streamable_players[j].AvgPoints
+	})
 	t.StreamablePlayers = streamable_players
 }
 
@@ -262,6 +267,8 @@ func (t *BaseTeam) FindUnusedPositions() {
 			}
 		}
 	}
+	f;sakfa;ksd
+	// Putting error here to remind me to convert the unused positions to a map[int]map[string]bool
 	
 	t.UnusedPositions = unused_positions
 }
