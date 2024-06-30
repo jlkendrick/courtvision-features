@@ -56,7 +56,7 @@ func BTFieldValidator[P PlayerInterface, S string, I int](collection interface{}
 	switch c := collection.(type) {
 	case map[S]P:
 		// RosterMap
-		fmt.Println("Testing RosterMap")
+		fmt.Println("Testing", field)
 		if len(c) == 0 {
 			t.Errorf(field, "is empty");
 		}
@@ -79,7 +79,7 @@ func BTFieldValidator[P PlayerInterface, S string, I int](collection interface{}
 		}
 	case []P:
 		// FreeAgents and StreamablePlayers
-		fmt.Println("Testing FreeAgents and StreamablePlayers")
+		fmt.Println("Testing", field)
 		if len(c) == 0 {
 			t.Errorf(field, "is empty")
 		}
@@ -99,7 +99,7 @@ func BTFieldValidator[P PlayerInterface, S string, I int](collection interface{}
 		}
 	case map[I]map[S]P:
 		// OptimalSlotting
-		fmt.Println("Testing OptimalSlotting")
+		fmt.Println("Testing", field)
 		if len(c) == 0 {
 			t.Errorf(field, "is empty")
 		}
@@ -130,7 +130,7 @@ func BTFieldValidator[P PlayerInterface, S string, I int](collection interface{}
 		}
 	case map[I][]S:
 		// UnusedPositions
-		fmt.Println("Testing UnusedPositions")
+		fmt.Println("Testing", field)
 		if len(c) == 0 {
 			t.Errorf(field, "is empty")
 		}

@@ -3,58 +3,79 @@ package main
 import (
 	"fmt"
 	"sort"
-	"net/http"
-	"encoding/json"
+	// "net/http"
+	// "encoding/json"
 	"streaming-optimization/functions"
+	d "streaming-optimization/data"
+	t "streaming-optimization/team"
+	p "streaming-optimization/population"
 )
 
 func main() {
 
-	fmt.Println("Server started on port 8080")
+	// fmt.Println("Server started on port 8080")
 
-	// Handle request
-	http.HandleFunc("/optimize/", func(w http.ResponseWriter, r *http.Request) {
+	// // Handle request
+	// http.HandleFunc("/optimize/", func(w http.ResponseWriter, r *http.Request) {
 
-		if r.Method == "OPTIONS" {
-			w.Header().Set("Access-Control-Allow-Origin", "*")
-			w.Header().Set("Access-Control-Allow-Methods", "POST")
-			w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
-			return
-		}
+	// 	if r.Method == "OPTIONS" {
+	// 		w.Header().Set("Access-Control-Allow-Origin", "*")
+	// 		w.Header().Set("Access-Control-Allow-Methods", "POST")
+	// 		w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+	// 		return
+	// 	}
 	
-		// Set CORS headers for actual request
-		w.Header().Set("Access-Control-Allow-Origin", "*")
+	// 	// Set CORS headers for actual request
+	// 	w.Header().Set("Access-Control-Allow-Origin", "*")
 		
-		var request helper.ReqBody
-		fmt.Println(r.Body)
-		err := json.NewDecoder(r.Body).Decode(&request)
-		if err != nil {
-			fmt.Println(err)
-			http.Error(w, "Failed to decode request body", http.StatusBadRequest)
-			return
-		}
+	// 	var request helper.ReqBody
+	// 	fmt.Println(r.Body)
+	// 	err := json.NewDecoder(r.Body).Decode(&request)
+	// 	if err != nil {
+	// 		fmt.Println(err)
+	// 		http.Error(w, "Failed to decode request body", http.StatusBadRequest)
+	// 		return
+	// 	}
 
-		// Print the decoded request for debugging purposes
-		fmt.Printf("Received request: %+v\n", request)
+	// 	// Print the decoded request for debugging purposes
+	// 	fmt.Printf("Received request: %+v\n", request)
 
-		// Respond with a JSON-encoded message
-		json_data, err := json.Marshal(OptimizeStreaming(request))
-		if err != nil {
-			http.Error(w, "Failed to encode response", http.StatusInternalServerError)
-			return
-		}
-		w.Header().Set("Content-Type", "application/json")
-		_, err = w.Write(json_data)
-		if err != nil {
-			http.Error(w, "Failed to write response", http.StatusInternalServerError)
-			return
-		}
-	})
+	// 	// Respond with a JSON-encoded message
+	// 	json_data, err := json.Marshal(OptimizeStreaming(request))
+	// 	if err != nil {
+	// 		http.Error(w, "Failed to encode response", http.StatusInternalServerError)
+	// 		return
+	// 	}
+	// 	w.Header().Set("Content-Type", "application/json")
+	// 	_, err = w.Write(json_data)
+	// 	if err != nil {
+	// 		http.Error(w, "Failed to write response", http.StatusInternalServerError)
+	// 		return
+	// 	}
+	// })
 
-	// Start server
-	if err := http.ListenAndServe(":8080", nil); err != nil {
-		panic(err)
-	}
+	// // Start server
+	// if err := http.ListenAndServe(":8080", nil); err != nil {
+	// 	panic(err)
+	// }
+
+	// Load schedule from JSON file
+	d.LoadSchedule("static/schedule.json")
+
+	// League information
+	league_id := 424233486
+	espn_s2 := ""
+	swid := ""
+	team_name := "James's Scary Team"
+	year := 2024
+	week := "17"
+	fa_count := 100
+	threshold := 30.0
+
+	// Initialize the BaseTeam object
+	bt := t.InitBaseTeam(league_id, espn_s2, swid, team_name, year, fa_count, week, threshold)
+	population := p.InitPopulation(bt, 25)
+
 }
 
 func OptimizeStreaming(req helper.ReqBody) []helper.Gene {

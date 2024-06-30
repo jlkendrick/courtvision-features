@@ -14,22 +14,25 @@ type BaseTeam struct {
 	OptimalSlotting map[int]map[string]d.Player
 	UnusedPositions map[int][]string
 	StreamablePlayers []d.Player
+	Week string
 }
 
 func InitBaseTeam(league_id int, espn_s2 string, swid string, team_name string, year int, fa_count int, week string, threshold float64) *BaseTeam {
 	ScheduleMap = d.ScheduleMap
 
-	bt := new(BaseTeam)
+	bt := &BaseTeam{}
 	bt.RosterMap, bt.FreeAgents = d.FetchData(league_id, espn_s2, swid, team_name, year, fa_count)
 	bt.OptimizeSlotting(week, threshold)
 	bt.FindUnusedPositions()
+	bt.Week = week
+
 	return bt
 }
 
 func InitBaseTeamMock(week string, threshold float64) *BaseTeam {
 	ScheduleMap = d.ScheduleMap
 
-	bt := new(BaseTeam)
+	bt := &BaseTeam{}
 	bt.RosterMap = l.LoadRosterMap("/Users/jameskendrick/Code/cv/stopz/src/tests/resources/mock_roster.json")
 	bt.FreeAgents = l.LoadFreeAgents("/Users/jameskendrick/Code/cv/stopz/src/tests/resources/mock_freeagents.json")
 	bt.OptimizeSlotting(week, threshold)
