@@ -2,27 +2,23 @@ package data
 
 import (
 	"encoding/json"
+	"strconv"
 	"fmt"
 	"io"
 	"os"
 )
 
-// Struct for organizing the Games field in the JSON schedule file
-type TeamSchedule struct {
-	Games    map[int]bool
-}
-
 // Struct for JSON schedule file that is used to get days a player is playing
 type WeekSchedule struct {
-	StartDate     string           	   	  `json:"startDate"`
-	EndDate       string           	      `json:"endDate"`
-	GameSpan  	  int                     `json:"gameSpan"`
-	TeamSchedules map[string]TeamSchedule `json:"games"`
+	StartDate     string           	   	  	 `json:"startDate"`
+	EndDate       string           	      	 `json:"endDate"`
+	GameSpan  	  int                     	 `json:"gameSpan"`
+	TeamSchedules map[string]map[string]bool `json:"games"`
 }
 
 // Struct to organize the season schedule
 type SeasonSchedule struct {
-	Schedule map[string]WeekSchedule
+	Schedule map[string]WeekSchedule `json:"schedule"`
 }
 
 var ScheduleMap SeasonSchedule
@@ -59,15 +55,23 @@ func (s *SeasonSchedule) GetWeekSchedule(week string) WeekSchedule {
 	return s.Schedule[week]
 }
 
-// Function to get the game span for a specific week
-func (s *SeasonSchedule) GetGameSpan(week string) int {
-	return s.Schedule[week].GameSpan
-}
-
+// Function to check if a team is playing on a specific day
 func (s *SeasonSchedule) IsPlaying(week string, day int, team string) bool {
-	if _, ok := s.Schedule[week].TeamSchedules[team].Games[day]; ok {
+	if _, ok := s.Schedule[week].TeamSchedules[team][strconv.Itoa(day)]; ok {
 		return true
 	} else {
 		return false
 	}
+}
+
+func (w *WeekSchedule) GetStartDate() string {
+	return w.StartDate
+}
+
+func (w *WeekSchedule) GetEndDate() string {
+	return w.EndDate
+}
+
+func (w *WeekSchedule) GetGameSpan() int {
+	return w.GameSpan
 }

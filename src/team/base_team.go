@@ -1,10 +1,10 @@
 package team
 
 import (
+	"fmt"
+	"sort"
 	d "streaming-optimization/data"
 	l "streaming-optimization/tests/resources"
-	"sort"
-
 )
 
 var ScheduleMap d.SeasonSchedule
@@ -70,6 +70,7 @@ func (t *BaseTeam) OptimizeSlotting(week string, threshold float64) {
 	return_table := make(map[int]map[string]d.Player)
 
 	// Fill return table and put extra IR players on bench
+	fmt.Println(ScheduleMap.GetGameSpan(week))
 	for i := 0; i <= ScheduleMap.GetGameSpan(week); i++ {
 		return_table[i] = t.GetAvailableSlots(sorted_good_players, i, week)
 	}

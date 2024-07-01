@@ -45,7 +45,7 @@ func (g *Gene) InsertStreamablePlayers(bt *t.BaseTeam) {
 			continue
 		}
 
-		// Find the matching position for the player
+		// Find the matching positions for the player
 		matches := make([]string, 0, len(player.ValidPositions))
 		for _, pos := range player.ValidPositions {
 			if val, ok := bt.UnusedPositions[g.Day][pos]; ok && val {

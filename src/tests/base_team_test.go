@@ -9,6 +9,8 @@ import (
 )
 
 func TestBTInitWAPI(t *testing.T) {
+	d.InitSchedule("/Users/jameskendrick/Code/cv/stopz/src/static/schedule.json")
+
 	// Test the InitBaseTeam function
 	league_id := 424233486
 	espn_s2 := ""
@@ -16,7 +18,7 @@ func TestBTInitWAPI(t *testing.T) {
 	team_name := "James's Scary Team"
 	year := 2024
 	fa_count := 100
-	week := "17"
+	week := "1"
 	threshold := 30.0
 	bt := team.InitBaseTeam(league_id, espn_s2, swid, team_name, year, fa_count, week, threshold)
 
@@ -32,8 +34,10 @@ func TestBTInitWAPI(t *testing.T) {
 }
 
 func TestBTInitWOAPI(t *testing.T) {
+	d.InitSchedule("/Users/jameskendrick/Code/cv/stopz/src/static/schedule.json")
+
 	// Test the InitBaseTeamMock function
-	week := "17"
+	week := "1"
 	threshold := 30.0
 	bt := team.InitBaseTeamMock(week, threshold)
 
@@ -50,6 +54,8 @@ func TestBTInitWOAPI(t *testing.T) {
 }
 
 func TestBTFetchData(t *testing.T) {
+	d.InitSchedule("/Users/jameskendrick/Code/cv/stopz/src/static/schedule.json")
+
 	// Test the FetchData function
 	league_id := 424233486
 	espn_s2 := ""
@@ -66,8 +72,10 @@ func TestBTFetchData(t *testing.T) {
 }
 
 func TestBTOptimizeSlottingAndStreamablePlayers(t *testing.T) {
+	d.InitSchedule("/Users/jameskendrick/Code/cv/stopz/src/static/schedule.json")
+
 	// Test the OptimizeSlotting function
-	week := "17"
+	week := "1"
 	threshold := 30.0
 	roster_map := l.LoadRosterMap("/Users/jameskendrick/Code/cv/stopz/src/tests/resources/mock_roster.json")
 	free_agents := l.LoadFreeAgents("/Users/jameskendrick/Code/cv/stopz/src/tests/resources/mock_freeagents.json")
@@ -76,15 +84,19 @@ func TestBTOptimizeSlottingAndStreamablePlayers(t *testing.T) {
 		FreeAgents: free_agents,
 	}
 	bt.OptimizeSlotting(week, threshold)
+	fmt.Println(bt.OptimalSlotting)
 
 	// Validate field
 	BTFieldValidator[d.Player](bt.OptimalSlotting, t, "Anthony Edwards", "SG", 7, "MIN", "OptimalSlotting")
 	BTFieldValidator[d.Player](bt.StreamablePlayers, t, "Vince Williams Jr.", "SG", 7, "MEM", "StreamablePlayers")
+
 }
 
 func TestBTFindUnusedPositions(t *testing.T) {
+	d.InitSchedule("/Users/jameskendrick/Code/cv/stopz/src/static/schedule.json")
+
 	// Test the FindUnusedPositions function
-	week := "17"
+	week := "1"
 	threshold := 30.0
 	roster_map := l.LoadRosterMap("/Users/jameskendrick/Code/cv/stopz/src/tests/resources/mock_roster.json")
 	free_agents := l.LoadFreeAgents("/Users/jameskendrick/Code/cv/stopz/src/tests/resources/mock_freeagents.json")
@@ -97,6 +109,18 @@ func TestBTFindUnusedPositions(t *testing.T) {
 
 	// Validate field
 	BTFieldValidator[d.Player](bt.UnusedPositions, t, "", "", 0, "", "UnusedPositions")
+
+	// Print unused positions
+	pos_order := []string{"PG", "SG", "SF", "PF", "C", "G", "F", "UT1", "UT2", "UT3"}
+	for i := 0; i < 6; i++ {
+		day := bt.UnusedPositions[i]
+		fmt.Println("Day", i)
+		for _, pos := range pos_order {
+			if val, ok := day[pos]; ok && val {
+				fmt.Println(len(day))
+			}
+		}
+	}
 }
 
 type PlayerInterface interface {
