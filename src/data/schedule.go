@@ -29,6 +29,10 @@ func InitSchedule(path string) {
 
 // Function to load schedule from JSON file into memory
 func LoadSchedule(path string) {
+	if ScheduleMap.Schedule != nil { // If the schedule has already been loaded, don't load it again
+		fmt.Println("Schedule already loaded")
+		return
+	}
 	
 	// Load JSON schedule file
 	json_schedule, err := os.Open(path)

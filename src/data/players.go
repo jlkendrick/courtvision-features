@@ -43,4 +43,7 @@ func (p *Player) PlaysPosition(position string) bool {
 
 
 // Struct for organizing data on a player who has been dropped
-type DroppedPlayer struct {}
+type DroppedPlayer struct {
+	Player 	  Player
+	Countdown int
+}
