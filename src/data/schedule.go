@@ -55,7 +55,11 @@ func (s *SeasonSchedule) GetWeekSchedule(week string) WeekSchedule {
 	return s.Schedule[week]
 }
 
-// Function to check if a team is playing on a specific day
+// Function to get the game span for a specific week
+func (s *SeasonSchedule) GetGameSpan(week string) int {
+	return s.Schedule[week].GameSpan
+}
+
 func (s *SeasonSchedule) IsPlaying(week string, day int, team string) bool {
 	if _, ok := s.Schedule[week].TeamSchedules[team][strconv.Itoa(day)]; ok {
 		return true

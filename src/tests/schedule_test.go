@@ -15,6 +15,12 @@ func TestSchedule(t *testing.T) {
 	if d.ScheduleMap.IsPlaying("1", 1, "SAS") != true {
 		t.Errorf("IsPlaying is incorrect for SAS on day 1")
 	}
+	if d.ScheduleMap.IsPlaying("17", 4, "MIN") != false {
+		t.Errorf("IsPlaying is incorrect for MIN on day 4")
+	}
+	if d.ScheduleMap.IsPlaying("17", 12, "MIN") != true {
+		t.Errorf("IsPlaying is incorrect for MIN on day 12")
+	}
 
 	// Get the schedule for week 1
 	week := d.ScheduleMap.GetWeekSchedule("1")
@@ -25,6 +31,9 @@ func TestSchedule(t *testing.T) {
 		t.Errorf("EndDate is incorrect")
 	}
 	if week.GetGameSpan() != 5 {
+		t.Errorf("GameSpan is incorrect")
+	}
+	if d.ScheduleMap.GetGameSpan("1") != 5 {
 		t.Errorf("GameSpan is incorrect")
 	}
 

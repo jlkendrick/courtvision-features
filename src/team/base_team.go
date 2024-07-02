@@ -1,13 +1,11 @@
 package team
 
 import (
-	"fmt"
 	"sort"
 	d "streaming-optimization/data"
 	l "streaming-optimization/tests/resources"
 )
 
-var ScheduleMap d.SeasonSchedule
 type BaseTeam struct {
 	RosterMap map[string]d.Player
 	FreeAgents []d.Player
@@ -18,7 +16,6 @@ type BaseTeam struct {
 }
 
 func InitBaseTeam(league_id int, espn_s2 string, swid string, team_name string, year int, fa_count int, week string, threshold float64) *BaseTeam {
-	ScheduleMap = d.ScheduleMap
 
 	bt := &BaseTeam{}
 	bt.RosterMap, bt.FreeAgents = d.FetchData(league_id, espn_s2, swid, team_name, year, fa_count)
@@ -30,7 +27,6 @@ func InitBaseTeam(league_id int, espn_s2 string, swid string, team_name string, 
 }
 
 func InitBaseTeamMock(week string, threshold float64) *BaseTeam {
-	ScheduleMap = d.ScheduleMap
 
 	bt := &BaseTeam{}
 	bt.RosterMap = l.LoadRosterMap("/Users/jameskendrick/Code/cv/stopz/src/tests/resources/mock_roster.json")
@@ -70,8 +66,7 @@ func (t *BaseTeam) OptimizeSlotting(week string, threshold float64) {
 	return_table := make(map[int]map[string]d.Player)
 
 	// Fill return table and put extra IR players on bench
-	fmt.Println(ScheduleMap.GetGameSpan(week))
-	for i := 0; i <= ScheduleMap.GetGameSpan(week); i++ {
+	for i := 0; i <= d.ScheduleMap.GetGameSpan(week); i++ {
 		return_table[i] = t.GetAvailableSlots(sorted_good_players, i, week)
 	}
 
@@ -102,7 +97,7 @@ func (t *BaseTeam) GetAvailableSlots(players []d.Player, day int, week string) m
 	for _, player := range players {
 
 		// Checks if the player is playing on the given day
-		if ScheduleMap.IsPlaying(week, day, player.Team){
+		if d.ScheduleMap.IsPlaying(week, day, player.Team){
 			playing = append(playing, player)
 		}
 	}
@@ -254,7 +249,7 @@ func (t *BaseTeam) FindUnusedPositions() {
 	unused_positions := make(map[int]map[string]bool)
 
 	// Loop through each optimal slotting and add unused positions to map
-	for day, schedule := range t.OptimalSlotting {
+	for day, lineup := range t.OptimalSlotting {
 
 		// Initialize map for day if it doesn't exist
 		if unused_positions[day] == nil {
@@ -264,7 +259,7 @@ func (t *BaseTeam) FindUnusedPositions() {
 		for _, pos := range order {
 			
 			// If the position is empty, add it to the unused positions
-			if player := schedule[pos]; player.Name == "" {
+			if player := lineup[pos]; player.Name == "" {
 				unused_positions[day][pos] = true
 			}
 		}
