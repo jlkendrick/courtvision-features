@@ -34,10 +34,10 @@ func TestGeneInsertStreamablePlayers(t *testing.T) {
 	}
 
 	// Make sure free positions are correct
-	if _, ok := gene.FreePositions["G"]; ok {
+	if val := gene.FreePositions["G"]; val {
 		t.Errorf("Filled position (G) is incorrect")
 	}
-	if _, ok := gene.FreePositions["F"]; ok {
+	if val := gene.FreePositions["F"]; val {
 		t.Errorf("Filled position (F) is incorrect")
 	}
 	if val := gene.FreePositions["UT2"]; !val {
@@ -46,7 +46,14 @@ func TestGeneInsertStreamablePlayers(t *testing.T) {
 	if val := gene.FreePositions["UT3"]; !val {
 		t.Errorf("Free position (UT3) is incorrect")
 	}
-	if len(gene.FreePositions) != 2 {
+	count := 0
+	for _, val := range gene.FreePositions {
+		if val {
+			count++
+		}
+	}
+	fmt.Println(count)
+	if count != 2 {
 		t.Errorf("Free positions count is incorrect")
 	}
 

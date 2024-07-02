@@ -18,6 +18,8 @@ type Gene struct {
 }
 
 
+
+
 // Function to create a new gene
 func InitGene(bt *t.BaseTeam, day int, rng *rand.Rand) *Gene {
 	
@@ -34,22 +36,29 @@ func InitGene(bt *t.BaseTeam, day int, rng *rand.Rand) *Gene {
 	return gene
 }
 
+
+
+
 // Function to insert streamable players into the gene
 func (g *Gene) InsertStreamablePlayers(bt *t.BaseTeam) {
 
-	for _, streamer := range bt.StreamablePlayers {
-		g.SlotPlayer(bt, g, streamer)
-	}
-
-	// Add unused positions to the free positions map
+	// Initialize the free positions with the unused positions
 	for pos := range bt.UnusedPositions[g.Day] {
 		if player, ok := g.Roster[pos]; !ok || player.Name == "" {
 			g.FreePositions[pos] = true
 		}
 	}
+
+	for _, streamer := range bt.StreamablePlayers {
+		g.SlotPlayer(bt, streamer)
+	}
 }
 
-func (g *Gene) SlotPlayer(bt *t.BaseTeam, gene *Gene, streamer d.Player) {
+
+
+
+// Function to slot a player into the gene
+func (g *Gene) SlotPlayer(bt *t.BaseTeam, streamer d.Player) {
 
 	// If the streamer is not playing, add them to the bench
 	if !d.ScheduleMap.IsPlaying(bt.Week, g.Day, streamer.Team) {
@@ -60,7 +69,7 @@ func (g *Gene) SlotPlayer(bt *t.BaseTeam, gene *Gene, streamer d.Player) {
 	// Find the matching positions for the player
 	matches := make([]string, 0, len(streamer.ValidPositions))
 	for _, pos := range streamer.ValidPositions {
-		if val, ok := bt.UnusedPositions[g.Day][pos]; ok && val {
+		if val, ok := g.FreePositions[pos]; ok && val {
 			matches = append(matches, pos)
 		}
 	}
@@ -76,6 +85,7 @@ func (g *Gene) SlotPlayer(bt *t.BaseTeam, gene *Gene, streamer d.Player) {
 	for _, pos := range matches {
 		if player, ok := g.Roster[pos]; !ok || player.Name == "" {
 			g.Roster[pos] = streamer
+			g.FreePositions[pos] = false
 			rostered = true
 			break
 		}
@@ -86,6 +96,9 @@ func (g *Gene) SlotPlayer(bt *t.BaseTeam, gene *Gene, streamer d.Player) {
 		g.Bench.AddPlayer(streamer)
 	}
 }
+
+
+
 
 // Function to find a valid free agent to add to the gene
 func (g *Gene) FindRandomFreeAgent(bt *t.BaseTeam, c *Chromosome, rng *rand.Rand) d.Player {
@@ -116,6 +129,9 @@ func (g *Gene) FindRandomFreeAgent(bt *t.BaseTeam, c *Chromosome, rng *rand.Rand
 	return d.Player{}
 }
 
+
+
+
 // Function to drop a player from the gene
 func (g *Gene) RemoveStreamer(streamer d.Player) {
 
@@ -136,6 +152,9 @@ func (g *Gene) RemoveStreamer(streamer d.Player) {
 	}
 }
 
+
+
+
 // Function to drop the worst bench player
 func (g *Gene) DropWorstBenchPlayer() (d.Player, bool) {
 
@@ -145,6 +164,9 @@ func (g *Gene) DropWorstBenchPlayer() (d.Player, bool) {
 
 	return player, true
 }
+
+
+
 
 // Function to add a player to the bench
 func (g *Gene) AddPlayerToBench(player d.Player) {

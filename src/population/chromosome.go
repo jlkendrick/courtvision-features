@@ -5,6 +5,7 @@ import (
 	"math/rand"
 	d "streaming-optimization/data"
 	t "streaming-optimization/team"
+	u "streaming-optimization/utils"
 )
 
 // Struct for chromosome for genetic algorithm
@@ -64,7 +65,8 @@ func (c *Chromosome) PopulateChromosome(bt *t.BaseTeam, rng *rand.Rand) {
 		}
 
 		// If the roster is full, don't make acquisitions
-		if len(gene.FreePositions) == 0 {
+		num_open_posiitons := u.CountOpenPositions(gene.FreePositions)
+		if num_open_posiitons == 0 {
 			acq_count = 0
 		}
 
@@ -74,15 +76,15 @@ func (c *Chromosome) PopulateChromosome(bt *t.BaseTeam, rng *rand.Rand) {
 				continue
 			}
 
-			c.InsertFreeAgent(day, free_agent)
+			c.InsertFreeAgent(bt, day, free_agent)
 
 		}
 	}
 }
 
 // Function to insert a free agent into the chromosome
-func (c *Chromosome) InsertFreeAgent(day int, free_agent d.Player) {
-	pos_map := make(map[int]string)
+func (c *Chromosome) InsertFreeAgent(bt *t.BaseTeam, day int, free_agent d.Player) {
+	// pos_map := make(map[int]string)
 	gene := c.Genes[day]
 
 	// If it is the first day, we simply drop the bench streamer with the lowest average points
@@ -95,7 +97,7 @@ func (c *Chromosome) InsertFreeAgent(day int, free_agent d.Player) {
 		}
 
 		c.RemoveStreamer(day, free_agent, dropped_player)
-		c.FindSlots(day, free_agent, pos_map)
+		c.FindSlots(bt, day, free_agent)
 	} else if gene.Bench.GetLength() > 0 {
 		// If there are streamers on the bench, find the best position for the new player and drop the worst bench player
 	} else {
@@ -119,6 +121,8 @@ func (c *Chromosome) RemoveStreamer(day int, player_to_add d.Player, player_to_d
 }
 
 // Function to find slots for a free agent over the course of the week
-func (c *Chromosome) FindSlots(day int, free_agent d.Player, pos_map map[int]string) {
-	
+func (c *Chromosome) FindSlots(bt *t.BaseTeam, day int, free_agent d.Player) {
+	for _, gene := range c.Genes[day:] {
+		gene.SlotPlayer(bt, free_agent)
+	}
 }

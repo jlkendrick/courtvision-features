@@ -12,3 +12,13 @@ func SliceContainsPlayer(slice []d.Player, player *d.Player) bool {
 	}
 	return false
 }
+
+func CountOpenPositions(m map[string]bool) int {
+	count := 0
+	for _, value := range m {
+		if value {
+			count++
+		}
+	}
+	return count
+}
