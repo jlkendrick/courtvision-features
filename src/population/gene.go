@@ -85,6 +85,7 @@ func (g *Gene) SlotPlayer(bt *t.BaseTeam, streamer d.Player) {
 	for _, pos := range matches {
 		if player, ok := g.Roster[pos]; !ok || player.Name == "" {
 			g.Roster[pos] = streamer
+			// Un-free the position
 			g.FreePositions[pos] = false
 			rostered = true
 			break
@@ -108,7 +109,7 @@ func (g *Gene) FindRandomFreeAgent(bt *t.BaseTeam, c *Chromosome, rng *rand.Rand
 		free_agent := bt.FreeAgents[index]
 
 		// Check if the free agent is playing
-		if !d.ScheduleMap.IsPlaying(bt.Week, g.Day, free_agent.Team) {
+		if !d.ScheduleMap.IsPlaying(bt.Week, g.Day, free_agent.Team) || free_agent.Injured {
 			continue
 		}
 
@@ -150,6 +151,20 @@ func (g *Gene) RemoveStreamer(streamer d.Player) {
 			return
 		}
 	}
+}
+
+
+
+// Function that returns the position of a player that is currently rostered
+func (g *Gene) GetPosOfPlayer(player d.Player) string {
+
+	for pos, p := range g.Roster {
+		if p.Name == player.Name {
+			return pos
+		}
+	}
+
+	return ""
 }
 
 

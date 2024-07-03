@@ -3,6 +3,7 @@ package population
 import (
 	"fmt"
 	"math/rand"
+	"sort"
 	d "streaming-optimization/data"
 	t "streaming-optimization/team"
 	u "streaming-optimization/utils"
@@ -87,8 +88,9 @@ func (c *Chromosome) InsertFreeAgent(bt *t.BaseTeam, day int, free_agent d.Playe
 	// pos_map := make(map[int]string)
 	gene := c.Genes[day]
 
-	// If it is the first day, we simply drop the bench streamer with the lowest average points
-	if day == 0 {
+	// If it is the first day or there are streamers on the bench, drop the worst bench player and find the best positions for the new player
+	if day == 0 || gene.Bench.GetLength() > 0 {
+
 		dropped_player, ok := gene.DropWorstBenchPlayer(); if !ok {
 			fmt.Println("Error dropping worst bench player")
 			return
@@ -98,11 +100,35 @@ func (c *Chromosome) InsertFreeAgent(bt *t.BaseTeam, day int, free_agent d.Playe
 
 		c.RemoveStreamer(day, free_agent, dropped_player)
 		c.FindSlots(bt, day, free_agent)
-	} else if gene.Bench.GetLength() > 0 {
-		// If there are streamers on the bench, find the best position for the new player and drop the worst bench player
 	} else {
 		// If there are no streamers on the bench (i.e. the roster is full), drop the worst playing streamer that the free agent can replace and find the best position for the new player
+
+		// Find the worst current streamer that the free agent can replace
+		player_to_drop := c.FindStreamerToDrop(day); if player_to_drop == nil {
+			fmt.Println("Error finding streamer to drop")
+			return
+		}
+
+		// Drop the worst streamer and add the free agent
+		c.DroppedPlayers[free_agent.Name] = d.DroppedPlayer{Player: *player_to_drop, Countdown: 3}
+		c.RemoveStreamer(day, free_agent, *player_to_drop)
+		c.FindSlots(bt, day, free_agent)
 	}
+}
+
+// Function to find the worst streamer to drop
+func (c *Chromosome) FindStreamerToDrop(day int) *d.Player {
+	sort.Slice(c.CurStreamers, func(i, j int) bool {
+		return c.CurStreamers[i].AvgPoints < c.CurStreamers[j].AvgPoints
+	})
+
+	for _, streamer := range c.CurStreamers {
+		if pos := c.Genes[day].GetPosOfPlayer(streamer); pos != "" {
+			return &streamer
+		}
+	}
+
+	return nil
 }
 
 // Function to remove a streamer from the entire chromosome

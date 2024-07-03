@@ -34,11 +34,31 @@ func (b *Bench) GetLength() int {
 	return len(b.Players)
 }
 
-func (b *Bench) IsOnBench(p d.Player) bool {
-	for _, player := range b.Players {
-		if player.Name == p.Name {
-			return true
+type PlayerInterface interface {
+	GetName() string
+	GetAvgPoints() float64
+	GetTeam() string
+	GetValidPositions() []string
+	GetInjured() bool
+}
+
+func (b *Bench) IsOnBench(collection interface{}) bool {
+	switch c := collection.(type) {
+	case PlayerInterface:
+		for _, player := range b.Players {
+			if player.Name == c.GetName() {
+				return true
+			}
 		}
+		return false
+	case string:
+		for _, player := range b.Players {
+			if player.Name == c {
+				return true
+			}
+		}
+		return false
+	default:
+		return false
 	}
-	return false
 }
