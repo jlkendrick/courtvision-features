@@ -44,7 +44,7 @@ func InitChromosome(bt *t.BaseTeam, rng *rand.Rand) *Chromosome {
 }
 
 // Function to insert random free agents into the chromosome
-func (c *Chromosome) PopulateChromosome(bt *t.BaseTeam, rng *rand.Rand) {
+func (c *Chromosome) Populate(bt *t.BaseTeam, rng *rand.Rand) {
 
 	// Insert streamable players into the genes
 	for _, gene := range c.Genes {
@@ -53,7 +53,7 @@ func (c *Chromosome) PopulateChromosome(bt *t.BaseTeam, rng *rand.Rand) {
 
 	// Insert random free agents into the genes
 	for day, gene := range c.Genes {
-		acq_count := rng.Intn(3)
+		acq_count := (rng.Intn(5) / 2) + rng.Intn(2)
 
 		// Check if there are enough available slots to make acquisitions
 		if len(bt.UnusedPositions[day]) < acq_count {
@@ -61,13 +61,14 @@ func (c *Chromosome) PopulateChromosome(bt *t.BaseTeam, rng *rand.Rand) {
 		}
 
 		// On the first day, make sure you can't drop initial streamers who are playing
-		if day == 0 {
-			acq_count = gene.Bench.GetLength()
+		if non_playing_streamers_count := gene.Bench.GetLength(); day == 0 && acq_count > non_playing_streamers_count{
+			acq_count = non_playing_streamers_count
 		}
 
 		// If the roster is full, don't make acquisitions
 		num_open_posiitons := u.CountOpenPositions(gene.FreePositions)
 		if num_open_posiitons == 0 {
+			fmt.Println("Roster is full")
 			acq_count = 0
 		}
 
@@ -76,10 +77,13 @@ func (c *Chromosome) PopulateChromosome(bt *t.BaseTeam, rng *rand.Rand) {
 			free_agent := gene.FindRandomFreeAgent(bt, c, rng); if free_agent.Name == "" {
 				continue
 			}
-
 			c.InsertFreeAgent(bt, day, free_agent)
+			c.TotalAcquisitions++
 
 		}
+
+		// Decrement the countdown for dropped players
+		c.DecrementDroppedPlayers()
 	}
 }
 
@@ -151,4 +155,49 @@ func (c *Chromosome) FindSlots(bt *t.BaseTeam, day int, free_agent d.Player) {
 	for _, gene := range c.Genes[day:] {
 		gene.SlotPlayer(bt, free_agent)
 	}
+}
+
+
+// Function to decrement the countdown for dropped players
+func (c *Chromosome) DecrementDroppedPlayers() {
+	for _, dropped_player := range c.DroppedPlayers {
+		if dropped_player.Countdown > 0 {
+			dropped_player.Countdown--
+		} else {
+			delete(c.DroppedPlayers, dropped_player.Player.Name)
+		}
+	}
+}
+
+
+
+
+
+// -------------------------- UTILS --------------------------
+
+// Function to print the chromosome
+func (c *Chromosome) Print() {
+	order := []string{"PG", "SG", "SF", "PF", "C", "G", "F", "UT1", "UT2", "UT3"}
+
+
+	fmt.Println("Total Acquisitions:", c.TotalAcquisitions)
+	for i := 0; i < len(c.Genes); i++ {
+		gene := c.Genes[i]
+		fmt.Println("Day", i)
+		for _, pos := range order {
+			if val, ok := gene.FreePositions[pos]; ok && val {
+				fmt.Println(pos, "Unused")
+			} else if player, ok := gene.Roster[pos]; ok && player.Name != "" {
+				fmt.Println(pos, gene.Roster[pos].Name)
+			} else {
+				fmt.Println(pos, "has a good player in it")
+			}
+		}
+		fmt.Println("Bench")
+		for _, player := range gene.Bench.Players {
+			fmt.Println(player.Name)
+		}
+		fmt.Println()
+	}
+		
 }

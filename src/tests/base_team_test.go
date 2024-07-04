@@ -57,7 +57,7 @@ func TestBTInitWOAPI(t *testing.T) {
 	for i, day := range bt.OptimalSlotting {
 		fmt.Println("Day", i)
 		for _, pos := range order {
-			if player, ok := day[pos]; ok {
+			if player, ok := day[pos]; ok && player.GetName() != "" {
 				fmt.Println(pos, player.GetName())
 			} else {
 				fmt.Println(pos, "Empty")

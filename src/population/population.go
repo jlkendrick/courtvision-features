@@ -30,7 +30,9 @@ func InitPopulation(bt *t.BaseTeam, size int) *Population {
 			// Create random number generator
 			seed := time.Now().UnixNano() + int64(i)
 			rng := rand.New(rand.NewSource(seed))
+
 			chromosome := InitChromosome(bt, rng)
+			
 			ch <- chromosome
 		}()
 	}
