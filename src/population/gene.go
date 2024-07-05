@@ -11,7 +11,7 @@ import (
 type Gene struct {
 	Roster  	   map[string]d.Player
 	FreePositions  map[string]bool
-	NewPlayers 	   map[string]d.Player
+	NewPlayers 	   []d.Player
 	Day     	   int
 	Acquisitions   int
 	Bench 		   u.Bench
@@ -21,13 +21,13 @@ type Gene struct {
 
 
 // Function to create a new gene
-func InitGene(bt *t.BaseTeam, day int, rng *rand.Rand) *Gene {
+func InitGene(bt *t.BaseTeam, day int) *Gene {
 	
 	// Create a new gene
 	gene := &Gene{
 		Roster: make(map[string]d.Player),
 		FreePositions: make(map[string]bool),
-		NewPlayers: make(map[string]d.Player), 
+		NewPlayers: make([]d.Player, 0, 6), 
 		Day: day, 
 		Acquisitions: 0,
 		Bench: u.Bench{Players: make([]d.Player, 0, 10)},
@@ -186,4 +186,22 @@ func (g *Gene) DropWorstBenchPlayer() (d.Player, bool) {
 // Function to add a player to the bench
 func (g *Gene) AddPlayerToBench(player d.Player) {
 	g.Bench.AddPlayer(player)
+}
+
+
+
+// Function to check if a player is in the gene somewhere
+func (g *Gene) IsPlayerInGene(player d.Player) bool {
+
+	for _, p := range g.Roster {
+		if p.Name == player.Name {
+			return true
+		}
+	}
+
+	if g.Bench.IsOnBench(player) {
+		return true
+	}
+
+	return false
 }

@@ -13,10 +13,8 @@ func TestInitChromosome(t *testing.T) {
 	d.InitSchedule("/Users/jameskendrick/Code/cv/stopz/src/static/schedule.json")
 
 	bt := team.InitBaseTeamMock("1", 32.0)
-	seed := time.Now().UnixNano() + int64(1)
-	rng := rand.New(rand.NewSource(seed))
 
-	c := p.InitChromosome(bt, rng)
+	c := p.InitChromosome(bt)
 
 	if len(c.Genes) != 6 {
 		t.Errorf("Incorrect number of genes")
@@ -28,10 +26,8 @@ func TestChromosomeInsertStreamablePlayers(t *testing.T) {
 	d.InitSchedule("/Users/jameskendrick/Code/cv/stopz/src/static/schedule.json")
 
 	bt := team.InitBaseTeamMock("1", 32.0)
-	seed := time.Now().UnixNano() + int64(1)
-	rng := rand.New(rand.NewSource(seed))
 
-	c := p.InitChromosome(bt, rng)
+	c := p.InitChromosome(bt)
 
 	// Insert streamable players into the genes
 	for _, gene := range c.Genes {
@@ -65,10 +61,8 @@ func TestInsertFreeAgent(t *testing.T) {
 	d.InitSchedule("/Users/jameskendrick/Code/cv/stopz/src/static/schedule.json")
 
 	bt := team.InitBaseTeamMock("1", 32.0)
-	seed := time.Now().UnixNano() + int64(1)
-	rng := rand.New(rand.NewSource(seed))
 
-	c := p.InitChromosome(bt, rng)
+	c := p.InitChromosome(bt)
 
 	// Insert streamable players into the genes
 	for _, gene := range c.Genes {
@@ -76,7 +70,7 @@ func TestInsertFreeAgent(t *testing.T) {
 	}
 
 	// Insert "random" free agent into the chromosome
-	free_agent := d.Player{Name: "Random Free Agent", AvgPoints: 10.0, Team: "PHX", ValidPositions: []string{"C", "F", "UT1", "UT2", "UT3"}, Injured: false}
+	free_agent := d.Player{Name: "Random Free Agent1", AvgPoints: 10.0, Team: "PHX", ValidPositions: []string{"C", "F", "UT1", "UT2", "UT3"}, Injured: false}
 	c.InsertFreeAgent(bt, 0, free_agent)
 
 	c.Print()
@@ -112,7 +106,7 @@ func TestChromosomePopulateChromosome(t *testing.T) {
 	seed := time.Now().UnixNano() + int64(1)
 	rng := rand.New(rand.NewSource(seed))
 
-	c := p.InitChromosome(bt, rng)
+	c := p.InitChromosome(bt)
 
 	c.Populate(bt, rng)
 

@@ -2,11 +2,13 @@ package population
 
 import (
 	"fmt"
+	"math"
 	"math/rand"
 	"sort"
 	d "streaming-optimization/data"
 	t "streaming-optimization/team"
 	u "streaming-optimization/utils"
+	"time"
 )
 
 // Struct for chromosome for genetic algorithm
@@ -17,10 +19,11 @@ type Chromosome struct {
 	CumProbTracker 	  float64
 	DroppedPlayers    map[string]d.DroppedPlayer
 	CurStreamers 	  []d.Player
+	Week			  string
 }
 
 // Function to create a new chromosome
-func InitChromosome(bt *t.BaseTeam, rng *rand.Rand) *Chromosome {
+func InitChromosome(bt *t.BaseTeam) *Chromosome {
 	
 	// Create a new chromosome
 	chromosome := &Chromosome{Genes: make([]*Gene, d.ScheduleMap.Schedule[bt.Week].GameSpan + 1), 
@@ -29,6 +32,7 @@ func InitChromosome(bt *t.BaseTeam, rng *rand.Rand) *Chromosome {
 		CumProbTracker: 0.0, 
 		DroppedPlayers: make(map[string]d.DroppedPlayer),
 		CurStreamers: make([]d.Player, len(bt.StreamablePlayers)),
+		Week: bt.Week,
 	}
 
 	// Make the initial streamers the current streamers
@@ -36,7 +40,7 @@ func InitChromosome(bt *t.BaseTeam, rng *rand.Rand) *Chromosome {
 
 	// Create a gene for each day in the week
 	for i := 0; i <= d.ScheduleMap.Schedule[bt.Week].GameSpan; i++ {
-		gene := InitGene(bt, i, rng)
+		gene := InitGene(bt, i)
 		chromosome.Genes[i] = gene
 	}
 
@@ -75,9 +79,10 @@ func (c *Chromosome) Populate(bt *t.BaseTeam, rng *rand.Rand) {
 		// Make acquisitions
 		for i := 0; i < acq_count; i++ {
 			free_agent := gene.FindRandomFreeAgent(bt, c, rng); if free_agent.Name == "" {
-				continue
+				break
 			}
 			c.InsertFreeAgent(bt, day, free_agent)
+			c.Genes[day].NewPlayers = append(c.Genes[day].NewPlayers, free_agent)
 			c.TotalAcquisitions++
 
 		}
@@ -89,7 +94,6 @@ func (c *Chromosome) Populate(bt *t.BaseTeam, rng *rand.Rand) {
 
 // Function to insert a free agent into the chromosome
 func (c *Chromosome) InsertFreeAgent(bt *t.BaseTeam, day int, free_agent d.Player) {
-	// pos_map := make(map[int]string)
 	gene := c.Genes[day]
 
 	// If it is the first day or there are streamers on the bench, drop the worst bench player and find the best positions for the new player
@@ -99,11 +103,11 @@ func (c *Chromosome) InsertFreeAgent(bt *t.BaseTeam, day int, free_agent d.Playe
 			fmt.Println("Error dropping worst bench player")
 			return
 		} else {
-			c.DroppedPlayers[free_agent.Name] = d.DroppedPlayer{Player: dropped_player, Countdown: 3}
+			c.DroppedPlayers[free_agent.Name] = d.DroppedPlayer{Player: dropped_player, Countdown: 2}
 		}
 
 		c.RemoveStreamer(day, free_agent, dropped_player)
-		c.FindSlots(bt, day, free_agent)
+		c.SlotPlayer(bt, day, free_agent)
 	} else {
 		// If there are no streamers on the bench (i.e. the roster is full), drop the worst playing streamer that the free agent can replace and find the best position for the new player
 
@@ -114,9 +118,9 @@ func (c *Chromosome) InsertFreeAgent(bt *t.BaseTeam, day int, free_agent d.Playe
 		}
 
 		// Drop the worst streamer and add the free agent
-		c.DroppedPlayers[free_agent.Name] = d.DroppedPlayer{Player: *player_to_drop, Countdown: 3}
+		c.DroppedPlayers[free_agent.Name] = d.DroppedPlayer{Player: *player_to_drop, Countdown: 2}
 		c.RemoveStreamer(day, free_agent, *player_to_drop)
-		c.FindSlots(bt, day, free_agent)
+		c.SlotPlayer(bt, day, free_agent)
 	}
 }
 
@@ -151,7 +155,7 @@ func (c *Chromosome) RemoveStreamer(day int, player_to_add d.Player, player_to_d
 }
 
 // Function to find slots for a free agent over the course of the week
-func (c *Chromosome) FindSlots(bt *t.BaseTeam, day int, free_agent d.Player) {
+func (c *Chromosome) SlotPlayer(bt *t.BaseTeam, day int, free_agent d.Player) {
 	for _, gene := range c.Genes[day:] {
 		gene.SlotPlayer(bt, free_agent)
 	}
@@ -170,6 +174,30 @@ func (c *Chromosome) DecrementDroppedPlayers() {
 }
 
 
+// Function to mutate a chromosome
+func (c *Chromosome) Mutate(bt *t.BaseTeam, prob float64) {
+
+	// Get random seed
+	seed := rand.NewSource(time.Now().UnixNano() + int64(c.TotalAcquisitions))
+	rng := rand.New(seed)
+
+	// Get random number to determine if the chromosome will mutate
+	rand_num := rng.Float64(); if rand_num > prob {
+		return
+	}
+
+	if rand_num < prob * 0.33 {
+		// Drop
+	} else if rand_num < prob * 0.66 {
+		// Add
+	} else {
+		// Swap
+	}
+
+
+
+
+}
 
 
 
@@ -200,4 +228,22 @@ func (c *Chromosome) Print() {
 		fmt.Println()
 	}
 		
+}
+
+// Function to score the fitness of the chromosome
+func (c *Chromosome) ScoreFitness() {
+
+	fitness_score := 0.0
+	penalty_factor := 1.0
+
+	if c.TotalAcquisitions > d.ScheduleMap.GetGameSpan(c.Week) + 1 {
+		penalty_factor = 1.0 / math.Pow(1.3, float64(c.TotalAcquisitions - (d.ScheduleMap.GetGameSpan(c.Week) + 1)))
+	}
+	for _, gene := range c.Genes {
+		for _, player := range gene.Roster {
+			fitness_score += player.AvgPoints
+		}
+	}
+
+	c.FitnessScore = int(fitness_score * penalty_factor)
 }

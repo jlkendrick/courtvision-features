@@ -3,16 +3,19 @@ package tests
 import (
 	"fmt"
 	"runtime"
-	"math/rand"
 	d "streaming-optimization/data"
 	p "streaming-optimization/population"
 	"streaming-optimization/team"
 	"testing"
-	"time"
 )
 
 func TestGeneInit(t *testing.T) {
 	d.InitSchedule("/Users/jameskendrick/Code/cv/stopz/src/static/schedule.json")
+
+	gene := p.InitGene(team.InitBaseTeamMock("1", 32.0), 0)
+	if gene.Day != 0 {
+		t.Errorf("Gene day is incorrect")
+	}
 }
 
 func TestGeneInsertStreamablePlayers(t *testing.T) {
@@ -21,9 +24,7 @@ func TestGeneInsertStreamablePlayers(t *testing.T) {
 	// Test the InitGene function
 	bt := team.InitBaseTeamMock("1", 32.0)
 	day := 4
-	seed := time.Now().UnixNano()
-	rng := rand.New(rand.NewSource(seed))
-	gene := p.InitGene(bt, day, rng)
+	gene := p.InitGene(bt, day)
 	gene.InsertStreamablePlayers(bt)
 
 	// Make sure streamers got put in the right spot
@@ -67,9 +68,7 @@ func TestGeneSlotPlayerFirstDay(t *testing.T) {
 	// Test the InitGene function
 	bt := team.InitBaseTeamMock("1", 32.0)
 	day := 0
-	seed := time.Now().UnixNano()
-	rng := rand.New(rand.NewSource(seed))
-	gene := p.InitGene(bt, day, rng)
+	gene := p.InitGene(bt, day)
 	gene.InsertStreamablePlayers(bt)
 
 	// Test the SlotPlayer function
