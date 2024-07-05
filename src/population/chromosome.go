@@ -83,6 +83,7 @@ func (c *Chromosome) Populate(bt *t.BaseTeam, rng *rand.Rand) {
 			}
 			c.InsertFreeAgent(bt, day, free_agent)
 			c.Genes[day].NewPlayers = append(c.Genes[day].NewPlayers, free_agent)
+			c.Genes[day].Acquisitions++
 			c.TotalAcquisitions++
 
 		}
@@ -218,7 +219,7 @@ func (c *Chromosome) Print() {
 			} else if player, ok := gene.Roster[pos]; ok && player.Name != "" {
 				fmt.Println(pos, gene.Roster[pos].Name)
 			} else {
-				fmt.Println(pos, "has a good player in it")
+				fmt.Println(pos, "--------")
 			}
 		}
 		fmt.Println("Bench")

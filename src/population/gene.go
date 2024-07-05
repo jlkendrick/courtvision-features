@@ -96,6 +96,7 @@ func (g *Gene) SlotPlayer(bt *t.BaseTeam, streamer d.Player) {
 	if !rostered {
 		g.Bench.AddPlayer(streamer)
 	}
+
 }
 
 
@@ -199,9 +200,20 @@ func (g *Gene) IsPlayerInGene(player d.Player) bool {
 		}
 	}
 
-	if g.Bench.IsOnBench(player) {
-		return true
+	return g.Bench.IsOnBench(player)
+}
+
+// ------------------------- Utils ------------------------- //
+
+// Function to get the number of streamers that are currently in the gene somewhere
+func (g *Gene) GetNumStreamers() int {
+	
+	count := g.Bench.GetLength()
+	for _, player := range g.Roster {
+		if player.Name != "" {
+			count++
+		}
 	}
 
-	return false
+	return count
 }

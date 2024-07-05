@@ -1,6 +1,7 @@
 package tests
 
 import (
+	"fmt"
 	"math/rand"
 	d "streaming-optimization/data"
 	p "streaming-optimization/population"
@@ -99,10 +100,10 @@ func TestInsertFreeAgent(t *testing.T) {
 
 }
 
-func TestChromosomePopulateChromosome(t *testing.T) {
+func TestPopulateChromosome(t *testing.T) {
 	d.InitSchedule("/Users/jameskendrick/Code/cv/stopz/src/static/schedule.json")
 
-	bt := team.InitBaseTeamMock("2", 35.0)
+	bt := team.InitBaseTeamMock("2", 32.0)
 	seed := time.Now().UnixNano() + int64(1)
 	rng := rand.New(rand.NewSource(seed))
 
@@ -111,5 +112,25 @@ func TestChromosomePopulateChromosome(t *testing.T) {
 	c.Populate(bt, rng)
 
 	c.Print()
+
+	// Make sure NewPlayer count corresponds with gene and total acquisitions
+	total_acquisitions := 0
+	for _, gene := range c.Genes {
+		if len(gene.NewPlayers) != gene.Acquisitions {
+			fmt.Println(gene.NewPlayers, gene.Acquisitions)
+			t.Errorf("Acquisition count does not match new player count")
+		}
+		total_acquisitions += gene.Acquisitions
+	}
+	if total_acquisitions != c.TotalAcquisitions {
+		t.Errorf("Total acquisitions do not match gene acquisitions")
+	}
+
+	// Make sure the number of streamers is correct
+	for _, gene := range c.Genes {
+		if gene.GetNumStreamers() != len(bt.StreamablePlayers) {
+			t.Errorf("Streamer count is incorrect")
+		}
+	}
 
 }
