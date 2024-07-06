@@ -13,8 +13,8 @@ package tests
 // func TestEvolutionIntegration(t *testing.T) {
 
 // 	LoadSchedule("../static/schedule.json")
-// 	roster_map := loaders.LoadRosterMap("resources/mock_roster.json")
-// 	free_agents := loaders.LoadFreeAgents("resources/mock_freeagents.json")
+// 	roster_map := loaders.LoadRosterMapV2("resources/mock_roster.json")
+// 	free_agents := loaders.LoadFreeAgentsV2("resources/mock_freeagents.json")
 // 	optimal_lineup, streamable_players := OptimizeSlotting(roster_map, "15", 34.5)
 // 	free_positions := GetUnusedPositions(optimal_lineup)
 // 	week := "15"

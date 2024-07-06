@@ -64,27 +64,34 @@ func InitPopulation(bt *t.BaseTeam, size int) *EvolutionManager {
 func (ev *EvolutionManager) Evolve(bt *t.BaseTeam) {
 
 	// Selection: assign cumulative probabilities to the chromosomes making more fit chromosomes more likely to be selected
-	ev.AssignCumProbs()
 	ev.SortByFitness()
+	ev.AssignCumProbs()
 
 	next_generation := make([]*Chromosome, ev.NumChromosomes)
 
 	// Elitism: keep the best chromosome from the previous generation
-	next_generation[ev.NumChromosomes - 1] = ev.Population[ev.NumChromosomes - 1]
+	next_generation[ev.NumChromosomes-1] = ev.Population[ev.NumChromosomes-1]
 
 	// Generate the rest of the chromosomes
-	for i := 0; i < ev.NumChromosomes - 1; i++ {
+	for i := 0; i < ev.NumChromosomes-1; i++ {
+
+		// Create random seed
+		seed := rand.NewSource(time.Now().UnixNano() + int64(i))
+		rng := rand.New(seed)
 
 		// Selection: select two parents
-		parent1 := ev.SelectParent(1)
-		parent2 := ev.SelectParent(2)
+		parent1 := ev.SelectParent(1, rng)
+		parent2 := ev.SelectParent(2, rng)
 
 		// Crossover: create a child from the two parents
-		child := ev.Crossover(bt, parent1, parent2)
+		child := ev.Crossover(bt, parent1, parent2, rng)
 		
 		// Mutation: mutate the child
 		prob_of_mutation := 0.20
-		child.Mutate(bt, prob_of_mutation)
+		child.Mutate(bt, prob_of_mutation, rng)
+		child.ScoreFitness()
+
+		next_generation[i] = child
 	}
 
 	// Replace the old population with the new population
@@ -118,12 +125,7 @@ func (ev *EvolutionManager) SortByFitness() {
 
 
 // Function to select a parent from the population
-func (ev *EvolutionManager) SelectParent(num int) *Chromosome {
-	tournament := make([][5]*Chromosome, 3)
-
-	// Get random seed
-	seed := rand.NewSource(time.Now().UnixNano())
-	rng := rand.New(seed)
+func (ev *EvolutionManager) SelectParent(num int, rng *rand.Rand) *Chromosome {
 
 	switch num {
 	case 1:
@@ -137,6 +139,7 @@ func (ev *EvolutionManager) SelectParent(num int) *Chromosome {
 		}
 	case 2:
 		// Select a parent using tournament selection
+		tournament := make([][5]*Chromosome, 3)
 
 		for i := 0; i < 3; i++ {
 			for j := 0; j < 5; j++ {
@@ -147,13 +150,14 @@ func (ev *EvolutionManager) SelectParent(num int) *Chromosome {
 				return tournament[i][k].FitnessScore < tournament[i][l].FitnessScore
 			})
 		}
+		return tournament[rng.Intn(3)][1]
 	}
 
-	return tournament[rng.Intn(3)][1]
+	return ev.Population[ev.NumChromosomes - 1]
 }
 
 // Function to create a child chromosome from two parent chromosomes
-func (ev *EvolutionManager) Crossover(bt *t.BaseTeam, parent1, parent2 *Chromosome) *Chromosome {
+func (ev *EvolutionManager) Crossover(bt *t.BaseTeam, parent1, parent2 *Chromosome, rng *rand.Rand) *Chromosome {
 
 	// Create a new child chromosome
 	child := InitChromosome(bt)
@@ -165,7 +169,7 @@ func (ev *EvolutionManager) Crossover(bt *t.BaseTeam, parent1, parent2 *Chromoso
 
 	// Crossover the genes
 	for i := 0; i < len(child.Genes); i++ {
-		ev.MixGenes(bt, child, parent1.Genes[i], parent2.Genes[i])
+		ev.MixGenes(bt, child, parent1.Genes[i], parent2.Genes[i], rng)
 	}
 
 
@@ -173,11 +177,7 @@ func (ev *EvolutionManager) Crossover(bt *t.BaseTeam, parent1, parent2 *Chromoso
 }
 
 // Function to mix the genes of two parent chromosomes
-func (ev *EvolutionManager) MixGenes(bt *t.BaseTeam, child *Chromosome, parent1, parent2 *Gene) {
-
-	// Get random seed
-	seed := rand.NewSource(time.Now().UnixNano())
-	rng := rand.New(seed)
+func (ev *EvolutionManager) MixGenes(bt *t.BaseTeam, child *Chromosome, parent1, parent2 *Gene, rng *rand.Rand) {
 
 	// Create a list of all the new players in the parent genes
 	new_players := make([]d.Player, 0, len(parent1.NewPlayers) + len(parent2.NewPlayers))
@@ -204,6 +204,11 @@ func (ev *EvolutionManager) MixGenes(bt *t.BaseTeam, child *Chromosome, parent1,
 	for i := 0; i < num_players; i++ {
 		if p, ok := child.DroppedPlayers[new_players[i].Name]; !ok || (p.Player.Name != "" && p.Countdown == 0) {
 			child.InsertFreeAgent(bt, parent1.Day, new_players[i])
+			child.Genes[parent1.Day].NewPlayers = append(child.Genes[parent1.Day].NewPlayers, new_players[i])
+			child.Genes[parent1.Day].Acquisitions++
+			child.TotalAcquisitions++
 		}
 	}
+
+	child.DecrementDroppedPlayers()
 }

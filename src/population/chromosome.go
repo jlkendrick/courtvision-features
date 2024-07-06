@@ -8,7 +8,6 @@ import (
 	d "streaming-optimization/data"
 	t "streaming-optimization/team"
 	u "streaming-optimization/utils"
-	"time"
 )
 
 // Struct for chromosome for genetic algorithm
@@ -72,7 +71,6 @@ func (c *Chromosome) Populate(bt *t.BaseTeam, rng *rand.Rand) {
 		// If the roster is full, don't make acquisitions
 		num_open_posiitons := u.CountOpenPositions(gene.FreePositions)
 		if num_open_posiitons == 0 {
-			fmt.Println("Roster is full")
 			acq_count = 0
 		}
 
@@ -101,14 +99,13 @@ func (c *Chromosome) InsertFreeAgent(bt *t.BaseTeam, day int, free_agent d.Playe
 	if day == 0 || gene.Bench.GetLength() > 0 {
 
 		dropped_player, ok := gene.DropWorstBenchPlayer(); if !ok {
-			fmt.Println("Error dropping worst bench player")
 			return
 		} else {
 			c.DroppedPlayers[free_agent.Name] = d.DroppedPlayer{Player: dropped_player, Countdown: 2}
 		}
 
 		c.RemoveStreamer(day, free_agent, dropped_player)
-		c.SlotPlayer(bt, day, free_agent)
+		c.SlotPlayer(bt, day, len(c.Genes),  free_agent)
 	} else {
 		// If there are no streamers on the bench (i.e. the roster is full), drop the worst playing streamer that the free agent can replace and find the best position for the new player
 
@@ -121,7 +118,7 @@ func (c *Chromosome) InsertFreeAgent(bt *t.BaseTeam, day int, free_agent d.Playe
 		// Drop the worst streamer and add the free agent
 		c.DroppedPlayers[free_agent.Name] = d.DroppedPlayer{Player: *player_to_drop, Countdown: 2}
 		c.RemoveStreamer(day, free_agent, *player_to_drop)
-		c.SlotPlayer(bt, day, free_agent)
+		c.SlotPlayer(bt, day, len(c.Genes), free_agent)
 	}
 }
 
@@ -132,7 +129,7 @@ func (c *Chromosome) FindStreamerToDrop(day int) *d.Player {
 	})
 
 	for _, streamer := range c.CurStreamers {
-		if pos := c.Genes[day].GetPosOfPlayer(streamer); pos != "" {
+		if pos := c.Genes[day].GetPosOfPlayer(streamer); pos != "BE" {
 			return &streamer
 		}
 	}
@@ -156,8 +153,8 @@ func (c *Chromosome) RemoveStreamer(day int, player_to_add d.Player, player_to_d
 }
 
 // Function to find slots for a free agent over the course of the week
-func (c *Chromosome) SlotPlayer(bt *t.BaseTeam, day int, free_agent d.Player) {
-	for _, gene := range c.Genes[day:] {
+func (c *Chromosome) SlotPlayer(bt *t.BaseTeam, start int, end int, free_agent d.Player) {
+	for _, gene := range c.Genes[start:end] {
 		gene.SlotPlayer(bt, free_agent)
 	}
 }
@@ -176,30 +173,70 @@ func (c *Chromosome) DecrementDroppedPlayers() {
 
 
 // Function to mutate a chromosome
-func (c *Chromosome) Mutate(bt *t.BaseTeam, prob float64) {
-
-	// Get random seed
-	seed := rand.NewSource(time.Now().UnixNano() + int64(c.TotalAcquisitions))
-	rng := rand.New(seed)
+func (c *Chromosome) Mutate(bt *t.BaseTeam, prob float64, rng *rand.Rand) {
 
 	// Get random number to determine if the chromosome will mutate
 	rand_num := rng.Float64(); if rand_num > prob {
 		return
 	}
 
-	if rand_num < prob * 0.33 {
-		// Drop
-	} else if rand_num < prob * 0.66 {
-		// Add
-	} else {
-		// Swap
+	player_to_drop, pos, start, end := c.FindRandomPlayerToDrop(rng); if player_to_drop.Name == "" || start == -1 {
+		return
 	}
 
+	// Free the position of the player to drop
+	if pos != "BE" {
+		c.Genes[start].FreePositions[pos] = true
+	}
+	player_to_add := c.Genes[start].FindRandomFreeAgent(bt, c, rng); if player_to_add.Name == "" {
+		return
+	}
 
+	// Drop the player to drop and add the player to add
+	for i := start; i < end; i++ {
+		c.Genes[i].RemoveStreamer(player_to_drop)
+		c.Genes[i].SlotPlayer(bt, player_to_add)
+	}
 
-
+	// If the new player is still in the gene at the end of the week, add him to CurStreamers
+	if c.Genes[len(c.Genes)-1].IsPlayerInGene(player_to_add) {
+		for i, player := range c.CurStreamers {
+			if player.Name == player_to_drop.Name {
+				c.CurStreamers[i] = player_to_add
+				break
+			}
+		}
+	}
 }
 
+// Function to find a random player to drop
+func (c *Chromosome) FindRandomPlayerToDrop(rng *rand.Rand) (d.Player, string, int, int) {
+
+	start := 0
+	test_start := rng.Intn(len(c.Genes))
+	for start == 0 {
+		if c.Genes[test_start].Acquisitions > 0 {
+			start = test_start
+			break
+		} else {
+			test_start = rng.Intn(len(c.Genes))
+		}
+	}
+
+	player_to_drop := c.Genes[start].NewPlayers[rng.Intn(len(c.Genes[start].NewPlayers))]
+
+	// Find the day that the player to drop is no longer in the gene
+	end := len(c.Genes)
+	for i := start; i < len(c.Genes); i++ {
+		if !c.Genes[i].IsPlayerInGene(player_to_drop) {
+			end = i
+			break
+		}
+	}
+
+	return player_to_drop, c.Genes[start].GetPosOfPlayer(player_to_drop), start, end
+
+}
 
 
 // -------------------------- UTILS --------------------------
@@ -213,11 +250,12 @@ func (c *Chromosome) Print() {
 	for i := 0; i < len(c.Genes); i++ {
 		gene := c.Genes[i]
 		fmt.Println("Day", i)
+		fmt.Println("New Players", gene.NewPlayers)
 		for _, pos := range order {
 			if val, ok := gene.FreePositions[pos]; ok && val {
 				fmt.Println(pos, "Unused")
 			} else if player, ok := gene.Roster[pos]; ok && player.Name != "" {
-				fmt.Println(pos, gene.Roster[pos].Name)
+				fmt.Println(pos, gene.Roster[pos].Name, gene.Roster[pos].AvgPoints)
 			} else {
 				fmt.Println(pos, "--------")
 			}

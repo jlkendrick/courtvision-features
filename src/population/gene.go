@@ -165,7 +165,7 @@ func (g *Gene) GetPosOfPlayer(player d.Player) string {
 		}
 	}
 
-	return ""
+	return "BE"
 }
 
 
@@ -174,6 +174,9 @@ func (g *Gene) GetPosOfPlayer(player d.Player) string {
 // Function to drop the worst bench player
 func (g *Gene) DropWorstBenchPlayer() (d.Player, bool) {
 
+	if len(g.Bench.Players) == 0 {
+		return d.Player{}, false
+	}
 	player, ok := g.Bench.RemovePlayer(g.Bench.Players[0]); if !ok {
 		return d.Player{}, false
 	}

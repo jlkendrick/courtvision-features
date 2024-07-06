@@ -1,103 +1,107 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
+	"net/http"
 	"sort"
-	// "net/http"
-	// "encoding/json"
 	"streaming-optimization/functions"
-	d "streaming-optimization/data"
-	t "streaming-optimization/team"
-	p "streaming-optimization/population"
+	loaders "streaming-optimization/tests/resources"
+	// d "streaming-optimization/data"
+	// t "streaming-optimization/team"
+	// p "streaming-optimization/population"
 )
 
 func main() {
 
-	// fmt.Println("Server started on port 8080")
+	fmt.Println("Server started on port 8080")
 
-	// // Handle request
-	// http.HandleFunc("/optimize/", func(w http.ResponseWriter, r *http.Request) {
+	// Handle request
+	http.HandleFunc("/optimize/", func(w http.ResponseWriter, r *http.Request) {
 
-	// 	if r.Method == "OPTIONS" {
-	// 		w.Header().Set("Access-Control-Allow-Origin", "*")
-	// 		w.Header().Set("Access-Control-Allow-Methods", "POST")
-	// 		w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
-	// 		return
-	// 	}
+		if r.Method == "OPTIONS" {
+			w.Header().Set("Access-Control-Allow-Origin", "*")
+			w.Header().Set("Access-Control-Allow-Methods", "POST")
+			w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+			return
+		}
 	
-	// 	// Set CORS headers for actual request
-	// 	w.Header().Set("Access-Control-Allow-Origin", "*")
+		// Set CORS headers for actual request
+		w.Header().Set("Access-Control-Allow-Origin", "*")
 		
-	// 	var request helper.ReqBody
-	// 	fmt.Println(r.Body)
-	// 	err := json.NewDecoder(r.Body).Decode(&request)
-	// 	if err != nil {
-	// 		fmt.Println(err)
-	// 		http.Error(w, "Failed to decode request body", http.StatusBadRequest)
-	// 		return
-	// 	}
+		var request helper.ReqBody
+		fmt.Println(r.Body)
+		err := json.NewDecoder(r.Body).Decode(&request)
+		if err != nil {
+			fmt.Println(err)
+			http.Error(w, "Failed to decode request body", http.StatusBadRequest)
+			return
+		}
 
-	// 	// Print the decoded request for debugging purposes
-	// 	fmt.Printf("Received request: %+v\n", request)
+		// Print the decoded request for debugging purposes
+		fmt.Printf("Received request: %+v\n", request)
 
-	// 	// Respond with a JSON-encoded message
-	// 	json_data, err := json.Marshal(OptimizeStreaming(request))
-	// 	if err != nil {
-	// 		http.Error(w, "Failed to encode response", http.StatusInternalServerError)
-	// 		return
-	// 	}
-	// 	w.Header().Set("Content-Type", "application/json")
-	// 	_, err = w.Write(json_data)
-	// 	if err != nil {
-	// 		http.Error(w, "Failed to write response", http.StatusInternalServerError)
-	// 		return
-	// 	}
-	// })
+		// Respond with a JSON-encoded message
+		json_data, err := json.Marshal(OptimizeStreaming(request))
+		if err != nil {
+			http.Error(w, "Failed to encode response", http.StatusInternalServerError)
+			return
+		}
+		w.Header().Set("Content-Type", "application/json")
+		_, err = w.Write(json_data)
+		if err != nil {
+			http.Error(w, "Failed to write response", http.StatusInternalServerError)
+			return
+		}
+	})
 
-	// // Start server
-	// if err := http.ListenAndServe(":8080", nil); err != nil {
-	// 	panic(err)
-	// }
+	// Start server
+	if err := http.ListenAndServe(":8080", nil); err != nil {
+		panic(err)
+	}
 
-	// Load schedule from JSON file
-	d.LoadSchedule("static/schedule.json")
+	// // Load schedule from JSON file
+	// d.LoadSchedule("static/schedule.json")
 
-	// League information
-	league_id := 424233486
-	espn_s2 := ""
-	swid := ""
-	team_name := "James's Scary Team"
-	year := 2024
-	week := "17"
-	fa_count := 100
-	threshold := 30.0
+	// // League information
+	// league_id := 424233486
+	// espn_s2 := ""
+	// swid := ""
+	// team_name := "James's Scary Team"
+	// year := 2024
+	// week := "17"
+	// fa_count := 100
+	// threshold := 30.0
 
-	// Initialize the BaseTeam object
-	bt := t.InitBaseTeam(league_id, espn_s2, swid, team_name, year, fa_count, week, threshold)
-	ev := p.InitPopulation(bt, 25)
-	fmt.Println("Population size:", len(ev.Population))
+	// // Initialize the BaseTeam object
+	// bt := t.InitBaseTeam(league_id, espn_s2, swid, team_name, year, fa_count, week, threshold)
+	// ev := p.InitPopulation(bt, 25)
+	// fmt.Println("Population size:", len(ev.Population))
 
 }
 
 func OptimizeStreaming(req helper.ReqBody) []helper.Gene {
 
 	// Load schedule from JSON file
-	helper.LoadSchedule("static/schedule.json")
+	helper.LoadSchedule("static/old_schedule.json")
 
 	// League information
-	league_id := req.LeagueId // 424233486
-	espn_s2 := req.EspnS2 // ""
-	swid := req.Swid // ""
-	team_name := req.TeamName // "James's Scary Team"
-	year := req.Year // 2024
-	week := req.Week // "17"
-	fa_count := 150
+	// league_id := req.LeagueId
+	// espn_s2 := ""
+	// swid := ""
+	// team_name := req.TeamName
+	// year := req.Year
+	week := req.Week
+	// fa_count := 150
 
 	// Set threshold for streamable players
-	threshold := req.Threshold // 33.1
+	threshold := req.Threshold
 
 	// Retrieve team and free agent data from API
-	roster_map, free_agents := helper.GetPlayers(league_id, espn_s2, swid, team_name, year, fa_count)
+	// roster_map, free_agents := helper.GetPlayers(league_id, espn_s2, swid, team_name, year, fa_count)
+	roster_map := loaders.LoadRosterMapV2("tests/resources/mock_roster.json")
+	free_agents := loaders.LoadFreeAgentsV2("tests/resources/mock_freeagents.json")
+
 
 	// Optimize slotting and get streamable players
 	optimal_lineup, streamable_players := helper.OptimizeSlotting(roster_map, week, threshold)
@@ -128,7 +132,7 @@ func OptimizeStreaming(req helper.ReqBody) []helper.Gene {
 	// population = loaders.LoadInitPop("tests/resources/mock_initpop.json")
 
 	// Run the genetic algorithm for 50 generations
-	for i := 0; i < 50; i++ {
+	for i := 0; i < 25; i++ {
 
 		// Score fitness of initial population and get total acquisitions
 		for i := 0; i < len(population); i++ {
@@ -144,7 +148,7 @@ func OptimizeStreaming(req helper.ReqBody) []helper.Gene {
 		population = helper.EvolvePopulation(size, population, free_agents, free_positions, streamable_players, week)
 
 		// Print the max fitness score of the population
-		// fmt.Println("Max fitness score:", population[len(population)-1].FitnessScore)
+		fmt.Println("Max fitness score:", population[len(population)-1].FitnessScore)
 	}
 
 	// Print the best chromosome

@@ -123,7 +123,6 @@ func Crossover(parent1 Chromosome, parent2 Chromosome, fas []Player, free_positi
 	InsertStreamablePlayers(streamable_players, free_positions, week, &child, cur_streamers1)
 
 	for i := 0; i < len(parent1.Genes); i++ {
-
 		MixGenes(parent1.Genes[i], parent2.Genes[i], &child, fas, free_positions, week, cur_streamers1, streamable_players)
 	}
 
