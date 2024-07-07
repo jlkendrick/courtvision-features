@@ -134,3 +134,20 @@ func TestPopulateChromosome(t *testing.T) {
 	}
 
 }
+
+func TestChromosomeSlim(t *testing.T) {
+	d.InitSchedule("/Users/jameskendrick/Code/cv/stopz/v2/static/schedule.json")
+
+	bt := team.InitBaseTeamMock("2", 32.0)
+	seed := time.Now().UnixNano()
+	rng := rand.New(rand.NewSource(seed))
+
+	c := p.InitChromosome(bt)
+
+	c.Populate(bt, rng)
+	c.AddBackNonStreamablePlayers(bt)
+
+	slim_chromosome := c.Slim()
+	fmt.Println(slim_chromosome[0])
+}
+	

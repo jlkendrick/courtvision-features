@@ -31,7 +31,6 @@ func main() {
 		w.Header().Set("Access-Control-Allow-Origin", "*")
 		
 		var request u.ReqBody
-		fmt.Println(r.Body)
 		err := json.NewDecoder(r.Body).Decode(&request)
 		if err != nil {
 			fmt.Println(err)
@@ -63,7 +62,7 @@ func main() {
 
 }
 
-func OptimizeStreaming(req u.ReqBody) []p.Gene {
+func OptimizeStreaming(req u.ReqBody) []u.SlimGene {
 	// start := time.Now()
 	d.InitSchedule("/Users/jameskendrick/Code/cv/stopz/v2/static/schedule.json")
 
@@ -113,6 +112,7 @@ func OptimizeStreaming(req u.ReqBody) []p.Gene {
 
 	ev1.SortByFitness()
 	best_chromosome := ev1.Population[ev1.NumChromosomes-1]
+	best_chromosome.AddBackNonStreamablePlayers(bt)
 
 
 	// // Get the initial fitness score
@@ -124,11 +124,10 @@ func OptimizeStreaming(req u.ReqBody) []p.Gene {
 
 	// // Print the best chromosome
 	// fmt.Println(bt.Score + best_chromosome.FitnessScore, "vs", bt.Score + base_chromosome.FitnessScore, "diff", best_chromosome.FitnessScore - base_chromosome.FitnessScore)
-	// best_chromosome.AddBackNonStreamablePlayers(bt)
 	// best_chromosome.Print()
 	// elapsed := time.Since(start)
 	// fmt.Println("Time to run InitPopulation: ", elapsed)
 
-	return best_chromosome.DereferenceGenes()
+	return best_chromosome.Slim()
 
 }

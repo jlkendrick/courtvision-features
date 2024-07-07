@@ -73,3 +73,18 @@ type ReqBody struct {
 	Threshold float64 `json:"threshold"`
 	Week      string  `json:"week"`
 }
+
+// Slimmed version of a player for the response
+type SlimPlayer struct {
+	Name           string
+	AvgPoints      float64
+	Team           string
+}
+
+// Slimmed version of the final genes for the response
+type SlimGene struct {
+	Day 	  int
+	Additions []SlimPlayer
+	Removals  []SlimPlayer
+	Roster	  map[string]SlimPlayer
+}

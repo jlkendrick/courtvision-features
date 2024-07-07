@@ -12,6 +12,7 @@ type Gene struct {
 	Roster  	   map[string]d.Player
 	FreePositions  map[string]bool
 	NewPlayers 	   []d.Player
+	DroppedPlayers []d.Player
 	Day     	   int
 	Acquisitions   int
 	Bench 		   u.Bench
@@ -219,4 +220,32 @@ func (g *Gene) GetNumStreamers() int {
 	}
 
 	return count
+}
+
+// Function to slim down the gene to only the necessary information
+func (g *Gene) Slim() u.SlimGene {
+
+	slim_gene := u.SlimGene{
+		Day: g.Day,
+		Additions: make([]u.SlimPlayer, 0, len(g.NewPlayers)),
+		Removals: make([]u.SlimPlayer, 0, len(g.DroppedPlayers)),
+		Roster: make(map[string]u.SlimPlayer),
+	}
+
+	// Add the new players
+	for _, player := range g.NewPlayers {
+		slim_gene.Additions = append(slim_gene.Additions, u.SlimPlayer{Name: player.Name, AvgPoints: player.AvgPoints, Team: player.Team})
+	}
+
+	// Add the dropped players
+	for _, player := range g.DroppedPlayers {
+		slim_gene.Removals = append(slim_gene.Removals, u.SlimPlayer{Name: player.Name, AvgPoints: player.AvgPoints, Team: player.Team})
+	}
+
+	// Add the rostered players
+	for pos, player := range g.Roster {
+		slim_gene.Roster[pos] = u.SlimPlayer{Name: player.Name, AvgPoints: player.AvgPoints, Team: player.Team}
+	}
+
+	return slim_gene
 }

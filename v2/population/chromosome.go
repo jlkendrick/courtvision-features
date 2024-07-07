@@ -102,6 +102,7 @@ func (c *Chromosome) InsertFreeAgent(bt *t.BaseTeam, day int, free_agent d.Playe
 			return
 		} else {
 			c.DroppedPlayers[free_agent.Name] = d.DroppedPlayer{Player: dropped_player, Countdown: 2}
+			c.Genes[day].DroppedPlayers = append(c.Genes[day].DroppedPlayers, dropped_player)
 		}
 
 		c.RemoveStreamer(day, free_agent, dropped_player)
@@ -117,6 +118,7 @@ func (c *Chromosome) InsertFreeAgent(bt *t.BaseTeam, day int, free_agent d.Playe
 
 		// Drop the worst streamer and add the free agent
 		c.DroppedPlayers[free_agent.Name] = d.DroppedPlayer{Player: *player_to_drop, Countdown: 2}
+		c.Genes[day].DroppedPlayers = append(c.Genes[day].DroppedPlayers, *player_to_drop)
 		c.RemoveStreamer(day, free_agent, *player_to_drop)
 		c.SlotPlayer(bt, day, len(c.Genes), free_agent)
 	}
@@ -298,11 +300,11 @@ func (c *Chromosome) ScoreFitness() {
 	c.FitnessScore = int(fitness_score * penalty_factor)
 }
 
-// Function to dereference the genes of the chromosome
-func (c *Chromosome) DereferenceGenes() []Gene {
-	derefenced := make([]Gene, len(c.Genes))
+// Function to return a slimmed down, defreferenced version of the chromosome
+func (c *Chromosome) Slim() []u.SlimGene {
+	slim_chromosome := make([]u.SlimGene, len(c.Genes))
 	for i, gene := range c.Genes {
-		derefenced[i] = *gene
+		slim_chromosome[i] = gene.Slim()
 	}
-	return derefenced
+	return slim_chromosome
 }
