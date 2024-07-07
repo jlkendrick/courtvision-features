@@ -2,7 +2,7 @@ package utils
 
 import (
 	"sort"
-	d "streaming-optimization/data"
+	d "v2/data"
 )
 
 
@@ -61,4 +61,15 @@ func (b *Bench) IsOnBench(collection interface{}) bool {
 	default:
 		return false
 	}
+}
+
+// Struct for deserilizing the request body
+type ReqBody struct {
+	LeagueId  int     `json:"league_id"`
+	EspnS2    string  `json:"espn_s2"`
+	Swid      string  `json:"swid"`
+	TeamName  string  `json:"team_name"`
+	Year      int     `json:"year"`
+	Threshold float64 `json:"threshold"`
+	Week      string  `json:"week"`
 }

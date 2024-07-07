@@ -2,9 +2,9 @@ package tests
 
 import (
 	"fmt"
-	d "streaming-optimization/data"
-	l "streaming-optimization/tests/resources"
-	"streaming-optimization/team"
+	d "v2/data"
+	l "v2/resources"
+	"v2/team"
 	"testing"
 )
 

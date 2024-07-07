@@ -5,11 +5,8 @@ import (
 	"fmt"
 	"net/http"
 	"sort"
+	"time"
 	"streaming-optimization/functions"
-	loaders "streaming-optimization/tests/resources"
-	// d "streaming-optimization/data"
-	// t "streaming-optimization/team"
-	// p "streaming-optimization/population"
 )
 
 func main() {
@@ -60,47 +57,31 @@ func main() {
 		panic(err)
 	}
 
-	// // Load schedule from JSON file
-	// d.LoadSchedule("static/schedule.json")
-
-	// // League information
-	// league_id := 424233486
-	// espn_s2 := ""
-	// swid := ""
-	// team_name := "James's Scary Team"
-	// year := 2024
-	// week := "17"
-	// fa_count := 100
-	// threshold := 30.0
-
-	// // Initialize the BaseTeam object
-	// bt := t.InitBaseTeam(league_id, espn_s2, swid, team_name, year, fa_count, week, threshold)
-	// ev := p.InitPopulation(bt, 25)
-	// fmt.Println("Population size:", len(ev.Population))
-
 }
 
 func OptimizeStreaming(req helper.ReqBody) []helper.Gene {
 
+	start := time.Now()
+
 	// Load schedule from JSON file
-	helper.LoadSchedule("static/old_schedule.json")
+	helper.LoadSchedule("static/schedule.json")
 
 	// League information
-	// league_id := req.LeagueId
-	// espn_s2 := ""
-	// swid := ""
-	// team_name := req.TeamName
-	// year := req.Year
+	league_id := req.LeagueId
+	espn_s2 := ""
+	swid := ""
+	team_name := req.TeamName
+	year := req.Year
 	week := req.Week
-	// fa_count := 150
+	fa_count := 150
 
 	// Set threshold for streamable players
 	threshold := req.Threshold
 
 	// Retrieve team and free agent data from API
-	// roster_map, free_agents := helper.GetPlayers(league_id, espn_s2, swid, team_name, year, fa_count)
-	roster_map := loaders.LoadRosterMapV2("tests/resources/mock_roster.json")
-	free_agents := loaders.LoadFreeAgentsV2("tests/resources/mock_freeagents.json")
+	roster_map, free_agents := helper.GetPlayers(league_id, espn_s2, swid, team_name, year, fa_count)
+	// roster_map := loaders.LoadRosterMap("tests/resources/mock_roster.json")
+	// free_agents := loaders.LoadFreeAgents("tests/resources/mock_freeagents.json")
 
 
 	// Optimize slotting and get streamable players
@@ -170,6 +151,9 @@ func OptimizeStreaming(req helper.ReqBody) []helper.Gene {
 
 	fmt.Println("Best chromosome:", best_chromosome.TotalAcquisitions, "pickups", best_chromosome.FitnessScore, "fitness score", other_games_played, "games played")
 	helper.PrintPopulation(best_chromosome, free_positions)
+
+	elapsed := time.Since(start)
+	fmt.Println("Time to run OptimizeStreaming:", elapsed)
 
 	// Return the best chromosome's genes
 	return best_chromosome.Genes	

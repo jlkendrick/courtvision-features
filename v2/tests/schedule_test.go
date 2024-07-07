@@ -2,7 +2,7 @@ package tests
 
 import (
 	"testing"
-	d "streaming-optimization/data"
+	d "v2/data"
 )
 
 func TestSchedule(t *testing.T) {

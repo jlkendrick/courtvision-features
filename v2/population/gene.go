@@ -2,9 +2,9 @@ package population
 
 import (
 	"math/rand"
-	d "streaming-optimization/data"
-	t "streaming-optimization/team"
-	u "streaming-optimization/utils"
+	d "v2/data"
+	t "v2/team"
+	u "v2/utils"
 )
 
 // Struct for gene for genetic algorithm

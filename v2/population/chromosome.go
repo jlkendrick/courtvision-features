@@ -3,11 +3,11 @@ package population
 import (
 	"fmt"
 	"math"
-	"math/rand"
 	"sort"
-	d "streaming-optimization/data"
-	t "streaming-optimization/team"
-	u "streaming-optimization/utils"
+	"math/rand"
+	d "v2/data"
+	t "v2/team"
+	u "v2/utils"
 )
 
 // Struct for chromosome for genetic algorithm
@@ -238,6 +238,17 @@ func (c *Chromosome) FindRandomPlayerToDrop(rng *rand.Rand) (d.Player, string, i
 
 }
 
+// Function to add back the non-streamable players to the chromosome for returning
+func (c *Chromosome) AddBackNonStreamablePlayers(bt *t.BaseTeam) {
+	for day, gene := range c.Genes {
+		for pos, player := range bt.OptimalSlotting[day] {
+			if player.Name != "" {
+				gene.Roster[pos] = player
+			}
+		}
+	}
+}
+
 
 // -------------------------- UTILS --------------------------
 
@@ -285,4 +296,13 @@ func (c *Chromosome) ScoreFitness() {
 	}
 
 	c.FitnessScore = int(fitness_score * penalty_factor)
+}
+
+// Function to dereference the genes of the chromosome
+func (c *Chromosome) DereferenceGenes() []Gene {
+	derefenced := make([]Gene, len(c.Genes))
+	for i, gene := range c.Genes {
+		derefenced[i] = *gene
+	}
+	return derefenced
 }

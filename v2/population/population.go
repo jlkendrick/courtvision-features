@@ -4,8 +4,8 @@ import (
 	"math"
 	"math/rand"
 	"sort"
-	t "streaming-optimization/team"
-	d "streaming-optimization/data"
+	t "v2/team"
+	d "v2/data"
 	"sync"
 	"time"
 )

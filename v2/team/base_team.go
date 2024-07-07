@@ -2,17 +2,18 @@ package team
 
 import (
 	"sort"
-	d "streaming-optimization/data"
-	l "streaming-optimization/tests/resources"
+	d "v2/data"
+	l "v2/resources"
 )
 
 type BaseTeam struct {
-	RosterMap map[string]d.Player
-	FreeAgents []d.Player
-	OptimalSlotting map[int]map[string]d.Player
-	UnusedPositions map[int]map[string]bool
+	RosterMap		  map[string]d.Player
+	FreeAgents 		  []d.Player
+	OptimalSlotting   map[int]map[string]d.Player
+	UnusedPositions   map[int]map[string]bool
 	StreamablePlayers []d.Player
-	Week string
+	Score 			  int
+	Week 			  string
 }
 
 func InitBaseTeam(league_id int, espn_s2 string, swid string, team_name string, year int, fa_count int, week string, threshold float64) *BaseTeam {
@@ -21,6 +22,7 @@ func InitBaseTeam(league_id int, espn_s2 string, swid string, team_name string, 
 	bt.RosterMap, bt.FreeAgents = d.FetchData(league_id, espn_s2, swid, team_name, year, fa_count)
 	bt.OptimizeSlotting(week, threshold)
 	bt.FindUnusedPositions()
+	bt.CalculateOptimalScore()
 	bt.Week = week
 
 	return bt
@@ -29,10 +31,11 @@ func InitBaseTeam(league_id int, espn_s2 string, swid string, team_name string, 
 func InitBaseTeamMock(week string, threshold float64) *BaseTeam {
 
 	bt := &BaseTeam{}
-	bt.RosterMap = l.LoadRosterMap("/Users/jameskendrick/Code/cv/stopz/src/tests/resources/mock_roster.json")
-	bt.FreeAgents = l.LoadFreeAgents("/Users/jameskendrick/Code/cv/stopz/src/tests/resources/mock_freeagents.json")
+	bt.RosterMap = l.LoadRosterMap("/Users/jameskendrick/Code/cv/stopz/v2/resources/mock_roster.json")
+	bt.FreeAgents = l.LoadFreeAgents("/Users/jameskendrick/Code/cv/stopz/v2/resources/mock_freeagents.json")
 	bt.OptimizeSlotting(week, threshold)
 	bt.FindUnusedPositions()
+	bt.CalculateOptimalScore()
 	bt.Week = week
 
 	return bt
@@ -266,4 +269,15 @@ func (t *BaseTeam) FindUnusedPositions() {
 	}
 	
 	t.UnusedPositions = unused_positions
+}
+
+// Function to calculate the score of the optimal players for the week
+func (t *BaseTeam) CalculateOptimalScore() {
+	total_score := 0.0
+	for _, lineup := range t.OptimalSlotting {
+		for _, player := range lineup {
+			total_score += player.AvgPoints
+		}
+	}
+	t.Score = int(total_score)
 }
