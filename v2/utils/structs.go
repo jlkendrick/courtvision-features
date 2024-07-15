@@ -63,7 +63,7 @@ func (b *Bench) IsOnBench(collection interface{}) bool {
 	}
 }
 
-// Struct for deserilizing the request body
+// Struct for deserializing the request body
 type ReqBody struct {
 	LeagueId  int     `json:"league_id"`
 	EspnS2    string  `json:"espn_s2"`
@@ -87,4 +87,11 @@ type SlimGene struct {
 	Additions []SlimPlayer
 	Removals  []SlimPlayer
 	Roster	  map[string]SlimPlayer
+}
+
+// Struct that defines the return object for the API
+type Response struct {
+	Lineup []SlimGene
+	Improvement int
+	Timestamp string
 }

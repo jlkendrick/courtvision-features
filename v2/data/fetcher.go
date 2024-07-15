@@ -9,7 +9,7 @@ import (
 	"sync"
 )
 
-// Struct for deserilizing the request body
+// Struct for deserializing the request body
 type ReqBody struct {
 	LeagueId  int     `json:"league_id"`
 	EspnS2    string  `json:"espn_s2"`
@@ -20,15 +20,19 @@ type ReqBody struct {
 	Week      string  `json:"week"`
 }
 
-
-// Struct for how necessary variables are passed to espn-fantasy-server
-type ReqMeta struct {
+type LeagueInfo struct {
 	LeagueId int    `json:"league_id"`
 	EspnS2   string `json:"espn_s2"`
 	Swid     string `json:"swid"`
 	TeamName string `json:"team_name"`
 	Year     int    `json:"year"`
-	FaCount  int    `json:"fa_count"`
+}
+
+
+// Struct for how necessary variables are passed to espn-fantasy-server
+type ReqMeta struct {
+	LeagueInfo LeagueInfo `json:"league_info"`
+	FaCount    int    		`json:"fa_count"`
 }
 
 // Structs to keep track of the order of the responses
@@ -46,11 +50,8 @@ func FetchData(league_id int, espn_s2 string, swid string, team_name string, yea
 		defer wg.Done()
 	
 		// Create roster_meta struct
-		roster_meta := ReqMeta{LeagueId: league_id, 
-								  EspnS2: espn_s2,
-								  Swid: swid,
-								  TeamName: team_name, 
-								  Year: year,
+		roster_meta := ReqMeta{
+			            LeagueInfo: LeagueInfo{LeagueId: league_id, EspnS2: espn_s2, Swid: swid, TeamName: team_name, Year: year,},
 								  FaCount: fa_count,}
 	
 		// Convert roster_meta to JSON
@@ -88,8 +89,8 @@ func FetchData(league_id int, espn_s2 string, swid string, team_name string, yea
 
 	// List of URLs to send POST requests to
 	urls := []string{
-		"http://127.0.0.1:8000/get_roster_data/",
-		"http://127.0.0.1:8000/get_freeagent_data/",
+		"http://127.0.0.1:8000/data/get_roster_data",
+		"http://127.0.0.1:8000/data/get_freeagent_data",
 	}
 
 	// Response channel to receive responses from goroutines

@@ -12,13 +12,13 @@ import (
 
 // Struct for chromosome for genetic algorithm
 type Chromosome struct {
-	Genes 	     	  []*Gene
-	FitnessScore	  int
+	Genes 	     	  	[]*Gene
+	FitnessScore	  	int
 	TotalAcquisitions int
 	CumProbTracker 	  float64
 	DroppedPlayers    map[string]d.DroppedPlayer
-	CurStreamers 	  []d.Player
-	Week			  string
+	CurStreamers 	  	[]d.Player
+	Week			  			string
 }
 
 // Function to create a new chromosome

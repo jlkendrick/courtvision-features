@@ -7,13 +7,13 @@ import (
 )
 
 type BaseTeam struct {
-	RosterMap		  map[string]d.Player
-	FreeAgents 		  []d.Player
+	RosterMap		  		map[string]d.Player
+	FreeAgents 		  	[]d.Player
 	OptimalSlotting   map[int]map[string]d.Player
 	UnusedPositions   map[int]map[string]bool
 	StreamablePlayers []d.Player
-	Score 			  int
-	Week 			  string
+	Score 			  		int
+	Week 			  			string
 }
 
 func InitBaseTeam(league_id int, espn_s2 string, swid string, team_name string, year int, fa_count int, week string, threshold float64) *BaseTeam {

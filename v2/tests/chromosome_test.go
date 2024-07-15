@@ -101,7 +101,7 @@ func TestInsertFreeAgent(t *testing.T) {
 }
 
 func TestPopulateChromosome(t *testing.T) {
-	d.InitSchedule("/Users/jameskendrick/Code/cv/stopz/src/static/schedule.json")
+	d.InitSchedule("/Users/jameskendrick/Code/cv/stopz/v2/static/schedule.json")
 
 	bt := team.InitBaseTeamMock("2", 32.0)
 	seed := time.Now().UnixNano() + int64(1)
@@ -110,7 +110,6 @@ func TestPopulateChromosome(t *testing.T) {
 	c := p.InitChromosome(bt)
 
 	c.Populate(bt, rng)
-
 	c.Print()
 
 	// Make sure NewPlayer count corresponds with gene and total acquisitions
