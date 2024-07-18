@@ -7,10 +7,10 @@ import (
 	"net/http"
 	"encoding/json"
 
-	t "v2/team"
-	d "v2/data"
-	u "v2/utils"
-	p "v2/population"
+	t "lineup-generation/v2/team"
+	d "lineup-generation/v2/data"
+	u "lineup-generation/v2/utils"
+	p "lineup-generation/v2/population"
 )
 
 func main() {

@@ -2,8 +2,8 @@ package tests
 
 import (
 	"fmt"
-	. "streaming-optimization/functions"
-	loaders "streaming-optimization/resources"
+	. "lineup-generation/v1/functions"
+	loaders "lineup-generation/v1/resources"
 	"testing"
 )
 

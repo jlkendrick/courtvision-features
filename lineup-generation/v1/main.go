@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"sort"
 	"time"
-	"streaming-optimization/functions"
+	"lineup-generation/v1/functions"
 )
 
 func main() {

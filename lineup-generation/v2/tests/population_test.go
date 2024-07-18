@@ -5,9 +5,9 @@ import (
 	"time"
 	"sync"
 	"testing"
-	"v2/team"
-	d "v2/data"
-	p "v2/population"
+	"lineup-generation/v2/team"
+	d "lineup-generation/v2/data"
+	p "lineup-generation/v2/population"
 )
 
 func TestInitPopulation(t *testing.T) {

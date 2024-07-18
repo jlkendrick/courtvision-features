@@ -1,7 +1,7 @@
 package loaders
 
 import (
-	helper "streaming-optimization/functions"
+	helper "lineup-generation/v1/functions"
 	"encoding/json"
 	"fmt"
 	"os"

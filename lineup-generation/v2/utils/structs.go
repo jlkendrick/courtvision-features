@@ -2,7 +2,7 @@ package utils
 
 import (
 	"sort"
-	d "v2/data"
+	d "lineup-generation/v2/data"
 )
 
 

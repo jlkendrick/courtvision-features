@@ -2,7 +2,7 @@ package resources
 
 import (
 	"encoding/json"
-	d "v2/data"
+	d "lineup-generation/v2/data"
 	"fmt"
 	"os"
 )

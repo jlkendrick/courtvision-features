@@ -2,9 +2,9 @@ package population
 
 import (
 	"math/rand"
-	d "v2/data"
-	t "v2/team"
-	u "v2/utils"
+	d "lineup-generation/v2/data"
+	t "lineup-generation/v2/team"
+	u "lineup-generation/v2/utils"
 )
 
 // Struct for gene for genetic algorithm

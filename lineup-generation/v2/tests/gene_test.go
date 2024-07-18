@@ -2,9 +2,9 @@ package tests
 
 import (
 	"fmt"
-	d "v2/data"
-	p "v2/population"
-	"v2/team"
+	d "lineup-generation/v2/data"
+	p "lineup-generation/v2/population"
+	"lineup-generation/v2/team"
 	"testing"
 )
 

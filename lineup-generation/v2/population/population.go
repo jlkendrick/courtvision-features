@@ -4,8 +4,8 @@ import (
 	"math"
 	"math/rand"
 	"sort"
-	t "v2/team"
-	d "v2/data"
+	t "lineup-generation/v2/team"
+	d "lineup-generation/v2/data"
 	"sync"
 	"time"
 )
