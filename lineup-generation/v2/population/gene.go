@@ -1,21 +1,22 @@
 package population
 
 import (
+	"fmt"
 	"math/rand"
-	d "lineup-generation/v2/data"
-	t "lineup-generation/v2/team"
-	u "lineup-generation/v2/utils"
+	d "v2/data"
+	t "v2/team"
+	u "v2/utils"
 )
 
 // Struct for gene for genetic algorithm
 type Gene struct {
-	Roster  	   map[string]d.Player
+	Roster  	   	 map[string]d.Player
 	FreePositions  map[string]bool
 	NewPlayers 	   []d.Player
 	DroppedPlayers []d.Player
-	Day     	   int
+	Day     	   	 int
 	Acquisitions   int
-	Bench 		   u.Bench
+	Bench 		   	 u.Bench
 }
 
 
@@ -131,6 +132,36 @@ func (g *Gene) FindRandomFreeAgent(bt *t.BaseTeam, c *Chromosome, rng *rand.Rand
 
 	return d.Player{}
 }
+
+// // Function to find the best player to drop that the incoming free agent can replace
+// func (g *Gene) FindStreamerToDrop(incoming_player d.Player) *d.Player {
+
+// 	// If there are free posisitions that the incoming player can fill, just return the worst player
+// 	for _, pos := range incoming_player.ValidPositions {
+// 		if val, ok := g.FreePositions[pos]; ok && val {
+// 		}}
+
+// 	worst_matching_streamer := d.Player{AvgPoints: 1000.0}
+// 	for pos, streamer := range g.Roster {
+// 		if streamer.Name == "" {
+// 			continue
+// 		}
+
+// 		// Check if the streamer can be replaced by the incoming free agent
+// 		for _, valid_pos := range incoming_player.ValidPositions {
+// 			if pos == valid_pos && streamer.AvgPoints < worst_matching_streamer.AvgPoints {
+// 				worst_matching_streamer = streamer
+// 				break
+// 			}
+// 		}
+// 	}
+
+// 	if worst_matching_streamer.AvgPoints == 1000.0 {
+// 		return nil
+// 	}
+
+// 	return &worst_matching_streamer
+// }
 
 
 
@@ -248,4 +279,37 @@ func (g *Gene) Slim() u.SlimGene {
 	}
 
 	return slim_gene
+}
+
+// Function to check is a player is in the roster
+func (g *Gene) IsPlayerInRoster(player d.Player) bool {
+	
+	for _, p := range g.Roster {
+		if p.Name == player.Name {
+			return true
+		}
+	}
+
+	return false
+}
+
+// Function to print the gene
+func (g *Gene) Print() {
+	
+	order := []string{"PG", "SG", "SF", "PF", "C", "G", "F", "UT1", "UT2", "UT3"}
+
+	for _, pos := range order {
+		if val, ok := g.FreePositions[pos]; ok && val {
+			fmt.Println(pos, "Unused")
+		} else if player, ok := g.Roster[pos]; ok && player.Name != "" {
+			fmt.Println(pos, g.Roster[pos].Name, g.Roster[pos].AvgPoints)
+		} else {
+			fmt.Println(pos, "--------")
+		}
+	}
+
+	fmt.Println("Bench")
+	for _, player := range g.Bench.Players {
+		fmt.Println(player.Name)
+	}
 }

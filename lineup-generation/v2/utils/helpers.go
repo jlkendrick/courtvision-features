@@ -1,7 +1,7 @@
 package utils
 
 import (
-	d "lineup-generation/v2/data"
+	d "v2/data"
 )
 
 func SliceContainsPlayer(slice []d.Player, player *d.Player) bool {

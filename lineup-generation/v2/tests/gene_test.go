@@ -2,9 +2,9 @@ package tests
 
 import (
 	"fmt"
-	d "lineup-generation/v2/data"
-	p "lineup-generation/v2/population"
-	"lineup-generation/v2/team"
+	d "v2/data"
+	p "v2/population"
+	"v2/team"
 	"testing"
 )
 
@@ -61,14 +61,17 @@ func TestGeneInsertStreamablePlayers(t *testing.T) {
 	fmt.Println(gene.FreePositions)
 }
 
-func TestGeneSlotPlayerFirstDay(t *testing.T) {
-	d.InitSchedule("/Users/jameskendrick/Code/cv/stopz/src/static/schedule.json")
+func TestGeneSlotPlayerDropBench(t *testing.T) {
+	d.InitSchedule("/Users/jameskendrick/Code/cv/features/lineup-generation/v2/static/schedule.json")
 
 	// Test the InitGene function
-	bt := team.InitBaseTeamMock("1", 32.0)
+	bt := team.InitBaseTeamMock("1", 34.0)
 	day := 0
 	gene := p.InitGene(bt, day)
 	gene.InsertStreamablePlayers(bt)
+
+	fmt.Println(gene.FreePositions)
+	gene.Print()
 
 	// Test the SlotPlayer function
 	streamer1 := d.Player{
@@ -91,4 +94,60 @@ func TestGeneSlotPlayerFirstDay(t *testing.T) {
 		t.Errorf("Player not dropped from bench")
 	}
 
+}
+
+func TestGeneSlotPlayerDropWorst(t *testing.T) {
+	d.InitSchedule("/Users/jameskendrick/Code/cv/features/lineup-generation/v2/static/schedule.json")
+
+	// Test the InitGene function
+	bt := team.InitBaseTeamMock("1", 32.0)
+	day := 4
+	gene := p.InitGene(bt, day)
+	gene.InsertStreamablePlayers(bt)
+
+	c := p.InitChromosome(bt)
+	c.Genes[day] = gene
+
+	// Test the SlotPlayer function
+	streamer1 := d.Player{
+		Name: "Test Player1",
+		AvgPoints: 10.0,
+		Team: "DEN",
+		ValidPositions: []string{"PG", "SG", "G", "UT1", "UT2", "UT3"},
+		Injured: false,
+	}
+	player_to_drop := c.FindStreamerToDrop(day, streamer1)
+
+	if player_to_drop == nil {
+		t.Errorf("Streamer not found")
+	} else if player_to_drop.Name != "Vince Williams Jr." {
+		t.Errorf("Incorrect player dropped")
+	}
+
+	// Test the SlotPlayer function
+	streamer2 := d.Player{
+		Name: "Test Player1",
+		AvgPoints: 10.0,
+		Team: "PHX",
+		ValidPositions: []string{"PG", "SG", "G", "UT1"},
+		Injured: false,
+	}
+	player_to_drop = c.FindStreamerToDrop(day, streamer2)
+
+	if player_to_drop == nil {
+		t.Errorf("Streamer not found")
+	} else if (player_to_drop.Name != "Bradley Beal") {
+		t.Errorf("Incorrect player dropped")
+	}
+
+
+	gene.RemoveStreamer(*player_to_drop)
+	gene.SlotPlayer(bt, streamer2)
+
+	gene.Print()
+
+	// Make sure the players are in the right spot
+	if gene.Roster["G"].GetName() != "Test Player1" {
+		t.Errorf("Player not in the right spot")
+	}
 }

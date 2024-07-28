@@ -2,8 +2,8 @@ package team
 
 import (
 	"sort"
-	d "lineup-generation/v2/data"
-	l "lineup-generation/v2/resources"
+	d "v2/data"
+	l "v2/resources"
 )
 
 type BaseTeam struct {
@@ -31,8 +31,8 @@ func InitBaseTeam(league_id int, espn_s2 string, swid string, team_name string, 
 func InitBaseTeamMock(week string, threshold float64) *BaseTeam {
 
 	bt := &BaseTeam{}
-	bt.RosterMap = l.LoadRosterMap("/Users/jameskendrick/Code/cv/stopz/lineup-generation/v2/resources/mock_roster.json")
-	bt.FreeAgents = l.LoadFreeAgents("/Users/jameskendrick/Code/cv/stopz/v2/resources/mock_freeagents.json")
+	bt.RosterMap = l.LoadRosterMap("/Users/jameskendrick/Code/cv/features/lineup-generation/v2/resources/mock_roster.json")
+	bt.FreeAgents = l.LoadFreeAgents("/Users/jameskendrick/Code/cv/features/lineup-generation/v2/resources/mock_freeagents.json")
 	bt.OptimizeSlotting(week, threshold)
 	bt.FindUnusedPositions()
 	bt.CalculateOptimalScore()

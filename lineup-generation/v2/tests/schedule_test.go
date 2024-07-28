@@ -2,7 +2,7 @@ package tests
 
 import (
 	"testing"
-	d "lineup-generation/v2/data"
+	d "v2/data"
 )
 
 func TestSchedule(t *testing.T) {

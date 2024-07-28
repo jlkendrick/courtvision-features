@@ -7,10 +7,10 @@ import (
 	"net/http"
 	"encoding/json"
 
-	t "lineup-generation/v2/team"
-	d "lineup-generation/v2/data"
-	u "lineup-generation/v2/utils"
-	p "lineup-generation/v2/population"
+	t "v2/team"
+	d "v2/data"
+	u "v2/utils"
+	p "v2/population"
 )
 
 func main() {
@@ -66,7 +66,7 @@ func main() {
 
 func OptimizeStreaming(req u.ReqBody) u.Response {
 	start := time.Now()
-	d.InitSchedule("/Users/jameskendrick/Code/cv/stopz/v2/static/schedule.json")
+	d.InitSchedule("./static/schedule.json")
 
 	// League information
 	league_id := req.LeagueId
@@ -83,8 +83,8 @@ func OptimizeStreaming(req u.ReqBody) u.Response {
 	bt := t.InitBaseTeam(league_id, espn_s2, swid, team_name, year, fa_count, week, threshold)
 
 	// Create new populations
-	ev1 := p.InitPopulation(bt, 25)
-	ev2 := p.InitPopulation(bt, 25)
+	ev1 := p.InitPopulation(bt, 20)
+	ev2 := p.InitPopulation(bt, 20)
 
 	// Evolve the populations concurrently
 	var wg sync.WaitGroup
@@ -137,6 +137,6 @@ func OptimizeStreaming(req u.ReqBody) u.Response {
 	current_time := time.Now()
 	layout := "1/2/2006 3:04PM"
 
-	return u.Response{Lineup: best_chromosome.Slim(), Improvement: best_chromosome.FitnessScore - base_chromosome.FitnessScore, Timestamp: current_time.Format(layout)}
+	return u.Response{Lineup: best_chromosome.Slim(), Improvement: best_chromosome.FitnessScore - base_chromosome.FitnessScore, Timestamp: current_time.Format(layout), Week: week, Threshold: threshold}
 
 }

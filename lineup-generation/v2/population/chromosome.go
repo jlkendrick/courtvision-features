@@ -5,9 +5,9 @@ import (
 	"math"
 	"sort"
 	"math/rand"
-	d "lineup-generation/v2/data"
-	t "lineup-generation/v2/team"
-	u "lineup-generation/v2/utils"
+	d "v2/data"
+	t "v2/team"
+	u "v2/utils"
 )
 
 // Struct for chromosome for genetic algorithm
@@ -64,7 +64,7 @@ func (c *Chromosome) Populate(bt *t.BaseTeam, rng *rand.Rand) {
 		}
 
 		// On the first day, make sure you can't drop initial streamers who are playing
-		if non_playing_streamers_count := gene.Bench.GetLength(); day == 0 && acq_count > non_playing_streamers_count{
+		if non_playing_streamers_count := gene.Bench.GetLength(); day == 0 && acq_count > non_playing_streamers_count {
 			acq_count = non_playing_streamers_count
 		}
 
@@ -74,16 +74,31 @@ func (c *Chromosome) Populate(bt *t.BaseTeam, rng *rand.Rand) {
 			acq_count = 0
 		}
 
+		// If acq_count is more than the number of streamable players, take the number of streamable players
+		if acq_count > len(bt.StreamablePlayers) {
+			acq_count = len(bt.StreamablePlayers)
+		}
+
 		// Make acquisitions
+		round := make([]d.Player, 0, acq_count)
 		for i := 0; i < acq_count; i++ {
 			free_agent := gene.FindRandomFreeAgent(bt, c, rng); if free_agent.Name == "" {
 				break
 			}
-			c.InsertFreeAgent(bt, day, free_agent)
-			c.Genes[day].NewPlayers = append(c.Genes[day].NewPlayers, free_agent)
-			c.Genes[day].Acquisitions++
-			c.TotalAcquisitions++
+			
+			if success := c.InsertFreeAgent(bt, day, free_agent); success {
+				round = append(round, free_agent)
+			}
 
+		}
+
+		// Look at the round to see which players ended up in the gene
+		for _, player := range round {
+			if gene.IsPlayerInGene(player) {
+				c.Genes[day].NewPlayers = append(c.Genes[day].NewPlayers, player)
+				c.Genes[day].Acquisitions++
+				c.TotalAcquisitions++
+			}
 		}
 
 		// Decrement the countdown for dropped players
@@ -92,14 +107,14 @@ func (c *Chromosome) Populate(bt *t.BaseTeam, rng *rand.Rand) {
 }
 
 // Function to insert a free agent into the chromosome
-func (c *Chromosome) InsertFreeAgent(bt *t.BaseTeam, day int, free_agent d.Player) {
+func (c *Chromosome) InsertFreeAgent(bt *t.BaseTeam, day int, free_agent d.Player) bool {
 	gene := c.Genes[day]
 
 	// If it is the first day or there are streamers on the bench, drop the worst bench player and find the best positions for the new player
 	if day == 0 || gene.Bench.GetLength() > 0 {
 
 		dropped_player, ok := gene.DropWorstBenchPlayer(); if !ok {
-			return
+			return false
 		} else {
 			c.DroppedPlayers[free_agent.Name] = d.DroppedPlayer{Player: dropped_player, Countdown: 2}
 			c.Genes[day].DroppedPlayers = append(c.Genes[day].DroppedPlayers, dropped_player)
@@ -111,9 +126,9 @@ func (c *Chromosome) InsertFreeAgent(bt *t.BaseTeam, day int, free_agent d.Playe
 		// If there are no streamers on the bench (i.e. the roster is full), drop the worst playing streamer that the free agent can replace and find the best position for the new player
 
 		// Find the worst current streamer that the free agent can replace
-		player_to_drop := c.FindStreamerToDrop(day); if player_to_drop == nil {
+		player_to_drop := c.FindStreamerToDrop(day, free_agent); if player_to_drop == nil {
 			fmt.Println("Error finding streamer to drop")
-			return
+			return false
 		}
 
 		// Drop the worst streamer and add the free agent
@@ -122,17 +137,36 @@ func (c *Chromosome) InsertFreeAgent(bt *t.BaseTeam, day int, free_agent d.Playe
 		c.RemoveStreamer(day, free_agent, *player_to_drop)
 		c.SlotPlayer(bt, day, len(c.Genes), free_agent)
 	}
+
+	return true
 }
 
 // Function to find the worst streamer to drop
-func (c *Chromosome) FindStreamerToDrop(day int) *d.Player {
+func (c *Chromosome) FindStreamerToDrop(day int, player_to_add d.Player) *d.Player {
 	sort.Slice(c.CurStreamers, func(i, j int) bool {
 		return c.CurStreamers[i].AvgPoints < c.CurStreamers[j].AvgPoints
 	})
 
+	// If there are free posisitions that the incoming player can fill, just return the worst player
+	for _, pos := range player_to_add.ValidPositions {
+		if val, ok := c.Genes[day].FreePositions[pos]; ok && val {
+			return &c.CurStreamers[0]
+		}
+	}
+
+	// Otherwise, find the worst streamer that the incoming player can replace
 	for _, streamer := range c.CurStreamers {
-		if pos := c.Genes[day].GetPosOfPlayer(streamer); pos != "BE" {
-			return &streamer
+
+		// Get the streamers position for the day
+		pos := c.Genes[day].GetPosOfPlayer(streamer)
+
+		// Check if the incoming free agent can replace the streamer
+		if pos != "" && pos != "BE" {
+			for _, valid_pos := range player_to_add.ValidPositions {
+				if valid_pos == pos {
+					return &streamer
+				}
+			}
 		}
 	}
 

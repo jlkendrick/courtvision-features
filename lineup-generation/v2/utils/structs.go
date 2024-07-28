@@ -2,7 +2,7 @@ package utils
 
 import (
 	"sort"
-	d "lineup-generation/v2/data"
+	d "v2/data"
 )
 
 
@@ -83,7 +83,7 @@ type SlimPlayer struct {
 
 // Slimmed version of the final genes for the response
 type SlimGene struct {
-	Day 	  int
+	Day 	  	int
 	Additions []SlimPlayer
 	Removals  []SlimPlayer
 	Roster	  map[string]SlimPlayer
@@ -91,7 +91,9 @@ type SlimGene struct {
 
 // Struct that defines the return object for the API
 type Response struct {
-	Lineup []SlimGene
+	Lineup 			[]SlimGene
 	Improvement int
-	Timestamp string
+	Timestamp 	string
+	Week 				string
+	Threshold		float64
 }

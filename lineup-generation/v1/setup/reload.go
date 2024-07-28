@@ -4,8 +4,7 @@ import (
 	"os"
 	"fmt"
 	"encoding/json"
-	helper "streaming-optimization/functions"
-	
+	helper "lineup-generation/v1/functions"
 )
 
 // Function to refresh roster map, free agents, and initial population

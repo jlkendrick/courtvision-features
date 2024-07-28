@@ -3,15 +3,15 @@ package tests
 import (
 	"fmt"
 	"math/rand"
-	d "lineup-generation/v2/data"
-	p "lineup-generation/v2/population"
-	"lineup-generation/v2/team"
+	d "v2/data"
+	p "v2/population"
+	"v2/team"
 	"testing"
 	"time"
 )
 
 func TestInitChromosome(t *testing.T) {
-	d.InitSchedule("/Users/jameskendrick/Code/cv/stopz/src/static/schedule.json")
+	d.InitSchedule("/Users/jameskendrick/Code/cv/features/lineup-generation/v2/static/schedule.json")
 
 	bt := team.InitBaseTeamMock("1", 32.0)
 
@@ -24,7 +24,7 @@ func TestInitChromosome(t *testing.T) {
 }
 
 func TestChromosomeInsertStreamablePlayers(t *testing.T) {
-	d.InitSchedule("/Users/jameskendrick/Code/cv/stopz/src/static/schedule.json")
+	d.InitSchedule("/Users/jameskendrick/Code/cv/features/lineup-generation/v2/static/schedule.json")
 
 	bt := team.InitBaseTeamMock("1", 32.0)
 
@@ -59,7 +59,7 @@ func TestChromosomeInsertStreamablePlayers(t *testing.T) {
 
 
 func TestInsertFreeAgent(t *testing.T) {
-	d.InitSchedule("/Users/jameskendrick/Code/cv/stopz/src/static/schedule.json")
+	d.InitSchedule("/Users/jameskendrick/Code/cv/features/lineup-generation/v2/static/schedule.json")
 
 	bt := team.InitBaseTeamMock("1", 32.0)
 
@@ -101,37 +101,54 @@ func TestInsertFreeAgent(t *testing.T) {
 }
 
 func TestPopulateChromosome(t *testing.T) {
-	d.InitSchedule("/Users/jameskendrick/Code/cv/stopz/v2/static/schedule.json")
+	d.InitSchedule("/Users/jameskendrick/Code/cv/features/lineup-generation/v2/static/schedule.json")
 
-	bt := team.InitBaseTeamMock("2", 32.0)
-	seed := time.Now().UnixNano() + int64(1)
-	rng := rand.New(rand.NewSource(seed))
 
-	c := p.InitChromosome(bt)
+	errors := 0
+	for i := 0; i < 50; i++ {
+			
+		bt := team.InitBaseTeamMock("2", 32.0)
+		seed := time.Now().UnixNano() + int64(1)
+		rng := rand.New(rand.NewSource(seed))
 
-	c.Populate(bt, rng)
-	c.Print()
+		c := p.InitChromosome(bt)
 
-	// Make sure NewPlayer count corresponds with gene and total acquisitions
-	total_acquisitions := 0
-	for _, gene := range c.Genes {
-		if len(gene.NewPlayers) != gene.Acquisitions {
-			fmt.Println(gene.NewPlayers, gene.Acquisitions)
-			t.Errorf("Acquisition count does not match new player count")
+		c.Populate(bt, rng)
+
+		// Make sure NewPlayer count corresponds with gene and total acquisitions
+		total_acquisitions := 0
+		for _, gene := range c.Genes {
+			if len(gene.NewPlayers) != gene.Acquisitions {
+				fmt.Println(gene.NewPlayers, gene.Acquisitions)
+				t.Errorf("Acquisition count does not match new player count")
+			}
+			total_acquisitions += gene.Acquisitions
 		}
-		total_acquisitions += gene.Acquisitions
-	}
-	if total_acquisitions != c.TotalAcquisitions {
-		t.Errorf("Total acquisitions do not match gene acquisitions")
-	}
+		if total_acquisitions != c.TotalAcquisitions {
+			t.Errorf("Total acquisitions do not match gene acquisitions")
+		}
 
-	// Make sure the number of streamers is correct
-	for _, gene := range c.Genes {
-		if gene.GetNumStreamers() != len(bt.StreamablePlayers) {
-			t.Errorf("Streamer count is incorrect")
+		// Make sure the number of streamers is correct
+		for _, gene := range c.Genes {
+			if gene.GetNumStreamers() != len(bt.StreamablePlayers) {
+				t.Errorf("Streamer count is incorrect")
+			}
+		}
+
+		// Make sure each addition is in the roster
+		for day, gene := range c.Genes {
+			for _, player := range gene.NewPlayers {
+				if !gene.IsPlayerInRoster(player) {
+					errors++
+					fmt.Println("Day:", day)
+					c.Print()
+					t.Errorf("Player not in roster")
+				}
+			}
 		}
 	}
 
+	fmt.Println(errors)
 }
 
 func TestChromosomeSlim(t *testing.T) {
