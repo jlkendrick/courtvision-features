@@ -79,27 +79,36 @@ func (c *Chromosome) Populate(bt *t.BaseTeam, rng *rand.Rand) {
 			acq_count = len(bt.StreamablePlayers)
 		}
 
+		// Cerate a map of the current streamers
+		cur_streamers_copy := make(map[string]d.Player)
+		for _, player := range c.CurStreamers {
+			cur_streamers_copy[player.Name] = player
+		}
+
 		// Make acquisitions
-		round := make([]d.Player, 0, acq_count)
 		for i := 0; i < acq_count; i++ {
 			free_agent := gene.FindRandomFreeAgent(bt, c, rng); if free_agent.Name == "" {
 				break
 			}
 			
-			if success := c.InsertFreeAgent(bt, day, free_agent); success {
-				round = append(round, free_agent)
-			}
+			c.InsertFreeAgent(bt, day, free_agent)
 
 		}
 
-		// Look at the round to see which players ended up in the gene
-		for _, player := range round {
-			if gene.IsPlayerInGene(player) {
-				c.Genes[day].NewPlayers = append(c.Genes[day].NewPlayers, player)
-				c.Genes[day].Acquisitions++
+		still need to fix this in the evolution phase
+
+		// Look at the difference between the streamers at the end of the week and the streamers at the beginning of the week
+		for _, new_player := range c.CurStreamers {
+			if old_player, ok := cur_streamers_copy[new_player.Name]; !ok {
+				c.DroppedPlayers[old_player.Name] = d.DroppedPlayer{Player: old_player, Countdown: 3}
+				gene.DroppedPlayers = append(gene.DroppedPlayers, old_player)
+
+				gene.NewPlayers = append(gene.NewPlayers, new_player)
+				gene.Acquisitions++
 				c.TotalAcquisitions++
 			}
 		}
+
 
 		// Decrement the countdown for dropped players
 		c.DecrementDroppedPlayers()
@@ -115,9 +124,6 @@ func (c *Chromosome) InsertFreeAgent(bt *t.BaseTeam, day int, free_agent d.Playe
 
 		dropped_player, ok := gene.DropWorstBenchPlayer(); if !ok {
 			return false
-		} else {
-			c.DroppedPlayers[free_agent.Name] = d.DroppedPlayer{Player: dropped_player, Countdown: 2}
-			c.Genes[day].DroppedPlayers = append(c.Genes[day].DroppedPlayers, dropped_player)
 		}
 
 		c.RemoveStreamer(day, free_agent, dropped_player)
@@ -132,8 +138,6 @@ func (c *Chromosome) InsertFreeAgent(bt *t.BaseTeam, day int, free_agent d.Playe
 		}
 
 		// Drop the worst streamer and add the free agent
-		c.DroppedPlayers[free_agent.Name] = d.DroppedPlayer{Player: *player_to_drop, Countdown: 2}
-		c.Genes[day].DroppedPlayers = append(c.Genes[day].DroppedPlayers, *player_to_drop)
 		c.RemoveStreamer(day, free_agent, *player_to_drop)
 		c.SlotPlayer(bt, day, len(c.Genes), free_agent)
 	}

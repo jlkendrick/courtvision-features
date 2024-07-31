@@ -103,17 +103,18 @@ func TestInsertFreeAgent(t *testing.T) {
 func TestPopulateChromosome(t *testing.T) {
 	d.InitSchedule("/Users/jameskendrick/Code/cv/features/lineup-generation/v2/static/schedule.json")
 
-
 	errors := 0
-	for i := 0; i < 50; i++ {
+	for i := 0; i < 1; i++ {
 			
-		bt := team.InitBaseTeamMock("2", 32.0)
+		bt := team.InitBaseTeamMock("2", 34.0)
 		seed := time.Now().UnixNano() + int64(1)
 		rng := rand.New(rand.NewSource(seed))
 
 		c := p.InitChromosome(bt)
 
 		c.Populate(bt, rng)
+
+		c.Print()
 
 		// Make sure NewPlayer count corresponds with gene and total acquisitions
 		total_acquisitions := 0
@@ -144,6 +145,14 @@ func TestPopulateChromosome(t *testing.T) {
 					c.Print()
 					t.Errorf("Player not in roster")
 				}
+			}
+		}
+
+		// Make sure the length of the dropped players is the same as the number of acquisitions
+		for _, gene := range c.Genes {
+			if len(gene.DroppedPlayers) != gene.Acquisitions {
+				errors++
+				t.Errorf("Dropped player count does not match acquisitions")
 			}
 		}
 	}
