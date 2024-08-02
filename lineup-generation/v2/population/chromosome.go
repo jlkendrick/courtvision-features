@@ -79,15 +79,15 @@ func (c *Chromosome) Populate(bt *t.BaseTeam, rng *rand.Rand) {
 			acq_count = len(bt.StreamablePlayers)
 		}
 
-		// Create a map of the current streamers
-		cur_streamers_copy := make(map[string]d.Player)
+		// Create a map of the current (old) streamers
+		old_streamers := make(map[string]d.Player)
 		for _, player := range c.CurStreamers {
-			cur_streamers_copy[player.Name] = player
+			old_streamers[player.Name] = player
 		}
 
 		// Make acquisitions
 		for i := 0; i < acq_count; i++ {
-			free_agent := gene.FindRandomFreeAgent(bt, c, rng); if free_agent.Name == "" {
+			free_agent := gene.FindRandomFreeAgent(bt, c, rng, d.Player{}); if free_agent.Name == "" {
 				break
 			}
 			
@@ -95,12 +95,17 @@ func (c *Chromosome) Populate(bt *t.BaseTeam, rng *rand.Rand) {
 
 		}
 
-		// Look at the difference between the streamers at the end of the week and the streamers at the beginning of the week
-		for _, new_player := range c.CurStreamers {
-			if old_player, ok := cur_streamers_copy[new_player.Name]; !ok {
+		// Go through the old streamers and find the ones that were dropped
+		for _, old_player := range old_streamers {
+			if !u.SliceContainsPlayer(c.CurStreamers, &old_player) {
 				c.DroppedPlayers[old_player.Name] = d.DroppedPlayer{Player: old_player, Countdown: 3}
 				gene.DroppedPlayers = append(gene.DroppedPlayers, old_player)
+			}
+		}
 
+		// Go through the new players and find the ones that were added
+		for _, new_player := range c.CurStreamers {
+			if _, ok := old_streamers[new_player.Name]; !ok {
 				gene.NewPlayers = append(gene.NewPlayers, new_player)
 				gene.Acquisitions++
 				c.TotalAcquisitions++
@@ -222,14 +227,13 @@ func (c *Chromosome) Mutate(bt *t.BaseTeam, prob float64, rng *rand.Rand) (d.Pla
 		return d.Player{}, d.Player{}, 0, 0
 	}
 	// Add the dropped player to the dropped players map for the start day
-	c.Genes[start].DroppedPlayers = append(c.Genes[start].DroppedPlayers, player_to_drop)
 	c.DroppedPlayers[player_to_drop.Name] = d.DroppedPlayer{Player: player_to_drop, Countdown: 3}
 
 	// Free the position of the player to drop
 	if pos != "BE" {
 		c.Genes[start].FreePositions[pos] = true
 	}
-	player_to_add := c.Genes[start].FindRandomFreeAgent(bt, c, rng); if player_to_add.Name == "" {
+	player_to_add := c.Genes[start].FindRandomFreeAgent(bt, c, rng, player_to_drop); if player_to_add.Name == "" {
 		return d.Player{}, d.Player{}, 0, 0
 	}
 
@@ -246,8 +250,15 @@ func (c *Chromosome) Mutate(bt *t.BaseTeam, prob float64, rng *rand.Rand) (d.Pla
 			}
 		}
 
+		// Create a copy of the current streamers
+		old_streamers := make(map[string]d.Player)
+		for _, player := range c.CurStreamers {
+			old_streamers[player.Name] = player
+		}
+
 		c.Genes[i].RemoveStreamer(player_to_drop)
 		c.Genes[i].SlotPlayer(bt, player_to_add)
+
 	}
 
 	// If the player to add got in to the gene on the start day, put him in the NewPlayers list in the place of the player to drop
@@ -261,8 +272,6 @@ func (c *Chromosome) Mutate(bt *t.BaseTeam, prob float64, rng *rand.Rand) (d.Pla
 
 		// We don't need to increment acquisitions because we should have dropped a player as part of the mutation transaction
 	}
-
-
 
 	// If the new player is still in the gene at the end of the week, add him to CurStreamers
 	if c.Genes[len(c.Genes)-1].IsPlayerInGene(player_to_add) {

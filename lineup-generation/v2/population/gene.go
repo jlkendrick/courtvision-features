@@ -105,19 +105,27 @@ func (g *Gene) SlotPlayer(bt *t.BaseTeam, streamer d.Player) {
 
 
 // Function to find a valid free agent to add to the gene
-func (g *Gene) FindRandomFreeAgent(bt *t.BaseTeam, c *Chromosome, rng *rand.Rand) d.Player {
+func (g *Gene) FindRandomFreeAgent(bt *t.BaseTeam, c *Chromosome, rng *rand.Rand, replaced d.Player) d.Player {
 
 	for trials, cont := 0, true; trials < 25 && cont; trials++ {
 		index := rng.Intn(len(bt.FreeAgents))
 		free_agent := bt.FreeAgents[index]
+
+		// If a player to replace was passed, make sure the free agent can replace them
+		if replaced.Name != "" {
+			replace_pos := g.GetPosOfPlayer(replaced)
+			if !u.Contains(free_agent.ValidPositions, replace_pos) {
+				continue
+			}
+		}
 
 		// Check if the free agent is playing
 		if !d.ScheduleMap.IsPlaying(bt.Week, g.Day, free_agent.Team) || free_agent.Injured {
 			continue
 		}
 
-		// Make sure the player is not a current streamer or in the DroppedPlayers map
-		if u.SliceContainsPlayer(c.CurStreamers, &free_agent) || c.DroppedPlayers[free_agent.Name].Player.Name != "" {
+		// Make sure the player is not a current streamer or in the DroppedPlayers map or in NewPlayers
+		if u.SliceContainsPlayer(c.CurStreamers, &free_agent) || c.DroppedPlayers[free_agent.Name].Player.Name != "" || u.SliceContainsPlayer(g.NewPlayers, &free_agent) {
 			continue
 		}
 

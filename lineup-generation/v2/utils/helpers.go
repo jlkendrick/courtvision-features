@@ -22,3 +22,13 @@ func CountOpenPositions(m map[string]bool) int {
 	}
 	return count
 }
+
+// Generic function to check if a slice contains a given element
+func Contains[T comparable](slice []T, elem T) bool {
+	for _, e := range slice {
+		if e == elem {
+			return true
+		}
+	}
+	return false
+}

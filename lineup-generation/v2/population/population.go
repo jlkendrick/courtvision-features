@@ -8,6 +8,7 @@ import (
 	"time"
 	d "v2/data"
 	t "v2/team"
+	u "v2/utils"
 )
 
 // Struct for managing the evolution of the population of chromosomes
@@ -172,19 +173,24 @@ func (ev *EvolutionManager) Crossover(bt *t.BaseTeam, parent1, parent2 *Chromoso
 		gene := child.Genes[i]
 
 		// Create a copy of the current streamers
-		cur_streamers_copy := make(map[string]d.Player)
+		old_streamers := make(map[string]d.Player)
 		for _, player := range child.CurStreamers {
-			cur_streamers_copy[player.Name] = player
+			old_streamers[player.Name] = player
 		}
 
 		ev.MixGenes(bt, child, parent1.Genes[i], parent2.Genes[i], rng)
 
-		// Look at the difference between the streamers at the end of the week and the streamers at the beginning of the week
-		for _, new_player := range child.CurStreamers {
-			if old_player, ok := cur_streamers_copy[new_player.Name]; !ok {
+		// Go through the old streamers and find the ones that were dropped
+		for _, old_player := range old_streamers {
+			if !u.SliceContainsPlayer(child.CurStreamers, &old_player) {
 				child.DroppedPlayers[old_player.Name] = d.DroppedPlayer{Player: old_player, Countdown: 3}
 				gene.DroppedPlayers = append(gene.DroppedPlayers, old_player)
+			}
+		}
 
+		// Go through the new players and find the ones that were added
+		for _, new_player := range child.CurStreamers {
+			if _, ok := old_streamers[new_player.Name]; !ok {
 				gene.NewPlayers = append(gene.NewPlayers, new_player)
 				gene.Acquisitions++
 				child.TotalAcquisitions++
@@ -222,7 +228,7 @@ func (ev *EvolutionManager) MixGenes(bt *t.BaseTeam, child *Chromosome, parent1,
 
 	// Add the new players to the child
 	for i := 0; i < num_players; i++ {
-		if p, ok := child.DroppedPlayers[new_players[i].Name]; !ok || (p.Player.Name != "" && p.Countdown == 0) {
+		if p, ok := child.DroppedPlayers[new_players[i].Name]; (!ok || (p.Player.Name != "" && p.Countdown == 0)) && !child.Genes[parent1.Day].IsPlayerInGene(new_players[i]) {
 			child.InsertFreeAgent(bt, parent1.Day, new_players[i])
 			// child.Genes[parent1.Day].NewPlayers = append(child.Genes[parent1.Day].NewPlayers, new_players[i])
 			// child.Genes[parent1.Day].Acquisitions++

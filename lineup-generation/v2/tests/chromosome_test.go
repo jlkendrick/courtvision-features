@@ -105,7 +105,7 @@ func TestPopulateChromosome(t *testing.T) {
 
 	errors := 0
 	max_aquisitions := 0
-	for i := 0; i < 10; i++ {
+	for i := 0; i < 100; i++ {
 			
 		bt := team.InitBaseTeamMock("2", 34.0)
 		seed := time.Now().UnixNano() + int64(1)
@@ -127,6 +127,14 @@ func TestPopulateChromosome(t *testing.T) {
 		if total_acquisitions != c.TotalAcquisitions {
 			t.Errorf("Total acquisitions do not match gene acquisitions")
 		}
+
+		// Make sure NewPlayer count and DropPlayer count are correct
+		for _, gene := range c.Genes {
+			if len(gene.NewPlayers) != len(gene.DroppedPlayers) {
+				t.Errorf("NewPlayer count does not match DropPlayer count")
+			}
+		}
+		
 
 		// Make sure the number of streamers is correct
 		for _, gene := range c.Genes {
@@ -152,6 +160,34 @@ func TestPopulateChromosome(t *testing.T) {
 			if len(gene.DroppedPlayers) != gene.Acquisitions {
 				errors++
 				t.Errorf("Dropped player count does not match acquisitions")
+			}
+		}
+
+		// Make sure Name fields are not empty
+		for _, gene := range c.Genes {
+			for _, player := range gene.NewPlayers {
+				if player.Name == "" {
+					errors++
+					t.Errorf("New player name is empty")
+				}
+			}
+			for _, player := range gene.DroppedPlayers {
+				if player.Name == "" {
+					errors++
+					t.Errorf("Dropped player name is empty")
+				}
+			}
+		}
+
+		// Make sure there are no duplicates in NewPlayers
+		for _, gene := range c.Genes {
+			for i, player := range gene.NewPlayers {
+				for j, other_player := range gene.NewPlayers {
+					if i != j && player.Name == other_player.Name {
+						errors++
+						t.Errorf("Duplicate new player")
+					}
+				}
 			}
 		}
 

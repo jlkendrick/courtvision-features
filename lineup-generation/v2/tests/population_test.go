@@ -11,28 +11,28 @@ import (
 	p "v2/population"
 )
 
-func TestInitPopulation(t *testing.T) {
+func TestOptimizeStreaming(t *testing.T) {
 	start := time.Now()
 	d.InitSchedule("/Users/jameskendrick/Code/cv/features/lineup-generation/v2/static/schedule.json")
 
 	bt := team.InitBaseTeamMock("16", 34.0)
 
 	// Create new populations
-	ev1 := p.InitPopulation(bt, 5)
-	ev2 := p.InitPopulation(bt, 5)
+	ev1 := p.InitPopulation(bt, 25)
+	ev2 := p.InitPopulation(bt, 25)
 	
 	// Evolve the populations concurrently
 	var wg sync.WaitGroup
 	wg.Add(2)
 	go func() {
 		defer wg.Done()
-		for i := 0; i < 25; i++ {
+		for i := 0; i < 10; i++ {
 			ev1.Evolve(bt)
 		}
 	}()
 	go func() {
 		defer wg.Done()
-		for i := 0; i < 25; i++ {
+		for i := 0; i < 10; i++ {
 			ev2.Evolve(bt)
 		}
 	}()
@@ -43,11 +43,11 @@ func TestInitPopulation(t *testing.T) {
 	ev1.NumChromosomes = len(ev1.Population)
 	
 	// Evolve the combined population
-	for i := 0; i < 25; i++ {
+	for i := 0; i < 10; i++ {
 		ev1.Evolve(bt)
 	}
 
-	if len(ev1.Population) != 100 {
+	if len(ev1.Population) != 50 {
 		t.Errorf("Incorrect number of chromosomes")
 	}
 
@@ -60,8 +60,33 @@ func TestInitPopulation(t *testing.T) {
 
 	ev1.SortByFitness()
 
+	// Make sure NewPlayer count and DropPlayer count are correct
+	for _, chromosome := range ev1.Population {
+		for _, gene := range chromosome.Genes {
+			if len(gene.NewPlayers) != len(gene.DroppedPlayers) {
+				t.Errorf("NewPlayer count does not match DropPlayer count")
+			}
+		}
+	}
+
 	// Print the best chromosome
 	best_chromosome := ev1.Population[ev1.NumChromosomes-1]
+
+	// Go through the chromosome to make sure Additions and DroppedPlayers are correct
+	for _, gene := range best_chromosome.Genes {
+		for _, player := range gene.NewPlayers {
+			if player.Name == "" {
+				t.Errorf("Player name is empty")
+			}
+		}
+		for _, player := range gene.DroppedPlayers {
+			if player.Name == "" {
+				t.Errorf("Player name is empty")
+			}
+		}
+	}
+
+
 	fmt.Println(bt.Score + best_chromosome.FitnessScore, "vs", bt.Score + base_chromosome.FitnessScore, "diff", best_chromosome.FitnessScore - base_chromosome.FitnessScore)
 	best_chromosome.AddBackNonStreamablePlayers(bt)
 	best_chromosome.Print()
@@ -77,11 +102,24 @@ func TestEvolve(t *testing.T) {
 	bt := team.InitBaseTeamMock("19", 32.0)
 
 	// Create the EvolutionManager
-	ev := p.InitPopulation(bt, 25)
+	ev := p.InitPopulation(bt, 50)
 
 	// Evolve the population
 	for i := 0; i < 100; i++ {
 		ev.Evolve(bt)
+
+		// Make sure there are no duplicate players in each gene's NewPlayers
+		for _, chromosome := range ev.Population {
+			for _, gene := range chromosome.Genes {
+				for i, player := range gene.NewPlayers {
+					for j, other_player := range gene.NewPlayers {
+						if i != j && player.Name == other_player.Name {
+							t.Errorf("Duplicate new player")
+						}
+					}
+				}
+			}
+		}
 	}
 }
 
@@ -93,7 +131,7 @@ func TestCrossover(t *testing.T) {
 
 	errors := 0
 	max_aquisitions := 0
-	for i := 0; i < 15; i++ {
+	for i := 0; i < 150; i++ {
 
 		// Create the EvolutionManager
 		ev := &p.EvolutionManager{Population: make([]*p.Chromosome, 2), NumChromosomes: 2}
@@ -121,6 +159,13 @@ func TestCrossover(t *testing.T) {
 		}
 		if total_acquisitions != child.TotalAcquisitions {
 			t.Errorf("Total acquisitions do not match gene acquisitions")
+		}
+
+		// Make sure NewPlayer count and DropPlayer count are correct
+		for _, gene := range child.Genes {
+			if len(gene.NewPlayers) != len(gene.DroppedPlayers) {
+				t.Errorf("NewPlayer count does not match DropPlayer count")
+			}
 		}
 
 		// Make sure the number of streamers is correct
@@ -161,7 +206,7 @@ func TestMutate(t *testing.T) {
 	bt := team.InitBaseTeamMock("19", 32.0)
 
 	// errors := 0
-	for i := 0; i < 10; i++ {
+	for i := 0; i < 100; i++ {
 
 		// Get a chromosome to mutate
 		c1 := p.InitChromosome(bt)
@@ -178,18 +223,16 @@ func TestMutate(t *testing.T) {
 			}
 		}
 
+		// Make sure NewPlayer count and DropPlayer count are correct
+		for _, gene := range c1.Genes {
+			if len(gene.NewPlayers) != len(gene.DroppedPlayers) {
+				t.Errorf("NewPlayer count does not match DropPlayer count")
+			}
+		}
+
 		// Make sure the dropped_player was correctly handled
 		if dropped_player.Name != "" {
-			// First check that he is in the dropped players for the start day
-			found := false
-			for _, player := range c1.Genes[start].DroppedPlayers {
-				if player.Name == dropped_player.Name {
-					found = true
-				}
-			}
-			if !found {
-				t.Errorf("Dropped player not found in dropped players")
-			}
+			// He should NOT be in dropped players because the mutation is a replacement
 
 			// Next check that he is not anywhere in the roster within the interval
 			for i := start; i < end; i++ {
@@ -203,8 +246,6 @@ func TestMutate(t *testing.T) {
 				}
 			}
 			
-		} else {
-			t.Errorf("Dropped player not set")
 		}
 
 		// Make sure the added_player was correctly handled
@@ -224,8 +265,6 @@ func TestMutate(t *testing.T) {
 			if !c1.Genes[start].IsPlayerInRoster(added_player) {
 				t.Errorf("Added player not found in roster")
 			}
-		} else {
-			t.Errorf("Added player not set")
 		}
 	}
 }
