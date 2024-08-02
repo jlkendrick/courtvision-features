@@ -104,7 +104,8 @@ func TestPopulateChromosome(t *testing.T) {
 	d.InitSchedule("/Users/jameskendrick/Code/cv/features/lineup-generation/v2/static/schedule.json")
 
 	errors := 0
-	for i := 0; i < 1; i++ {
+	max_aquisitions := 0
+	for i := 0; i < 10; i++ {
 			
 		bt := team.InitBaseTeamMock("2", 34.0)
 		seed := time.Now().UnixNano() + int64(1)
@@ -113,8 +114,6 @@ func TestPopulateChromosome(t *testing.T) {
 		c := p.InitChromosome(bt)
 
 		c.Populate(bt, rng)
-
-		c.Print()
 
 		// Make sure NewPlayer count corresponds with gene and total acquisitions
 		total_acquisitions := 0
@@ -155,9 +154,14 @@ func TestPopulateChromosome(t *testing.T) {
 				t.Errorf("Dropped player count does not match acquisitions")
 			}
 		}
-	}
 
+		if c.TotalAcquisitions > max_aquisitions {
+			max_aquisitions = c.TotalAcquisitions
+		}
+	}
+ 
 	fmt.Println(errors)
+	fmt.Println("Max acquisitions:", max_aquisitions)
 }
 
 func TestChromosomeSlim(t *testing.T) {

@@ -1,13 +1,14 @@
 package population
 
 import (
+	
 	"math"
-	"math/rand"
 	"sort"
-	t "v2/team"
-	d "v2/data"
 	"sync"
 	"time"
+	"math/rand"
+	d "v2/data"
+	t "v2/team"
 )
 
 // Struct for managing the evolution of the population of chromosomes
@@ -169,7 +170,27 @@ func (ev *EvolutionManager) Crossover(bt *t.BaseTeam, parent1, parent2 *Chromoso
 
 	// Crossover the genes
 	for i := 0; i < len(child.Genes); i++ {
+		gene := child.Genes[i]
+
+		// Create a copy of the current streamers
+		cur_streamers_copy := make(map[string]d.Player)
+		for _, player := range child.CurStreamers {
+			cur_streamers_copy[player.Name] = player
+		}
+
 		ev.MixGenes(bt, child, parent1.Genes[i], parent2.Genes[i], rng)
+
+		// Look at the difference between the streamers at the end of the week and the streamers at the beginning of the week
+		for _, new_player := range child.CurStreamers {
+			if old_player, ok := cur_streamers_copy[new_player.Name]; !ok {
+				child.DroppedPlayers[old_player.Name] = d.DroppedPlayer{Player: old_player, Countdown: 3}
+				gene.DroppedPlayers = append(gene.DroppedPlayers, old_player)
+
+				gene.NewPlayers = append(gene.NewPlayers, new_player)
+				gene.Acquisitions++
+				child.TotalAcquisitions++
+			}
+		}
 	}
 
 
@@ -194,8 +215,8 @@ func (ev *EvolutionManager) MixGenes(bt *t.BaseTeam, child *Chromosome, parent1,
 
 	// Get a random number to determine how many players to add to the child
 	var num_players int
-	if len(new_players) > 1 {
-		num_players = rng.Intn(len(new_players) - 1) + 1
+	if len(new_players) >= 1 {
+		num_players = rng.Intn(len(new_players)) + rng.Intn(2)
 	} else {
 		num_players = 1
 	}
@@ -204,9 +225,9 @@ func (ev *EvolutionManager) MixGenes(bt *t.BaseTeam, child *Chromosome, parent1,
 	for i := 0; i < num_players; i++ {
 		if p, ok := child.DroppedPlayers[new_players[i].Name]; !ok || (p.Player.Name != "" && p.Countdown == 0) {
 			child.InsertFreeAgent(bt, parent1.Day, new_players[i])
-			child.Genes[parent1.Day].NewPlayers = append(child.Genes[parent1.Day].NewPlayers, new_players[i])
-			child.Genes[parent1.Day].Acquisitions++
-			child.TotalAcquisitions++
+			// child.Genes[parent1.Day].NewPlayers = append(child.Genes[parent1.Day].NewPlayers, new_players[i])
+			// child.Genes[parent1.Day].Acquisitions++
+			// child.TotalAcquisitions++
 		}
 	}
 
