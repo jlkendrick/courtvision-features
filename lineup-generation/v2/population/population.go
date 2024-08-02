@@ -1,12 +1,11 @@
 package population
 
 import (
-	
 	"math"
+	"math/rand"
 	"sort"
 	"sync"
 	"time"
-	"math/rand"
 	d "v2/data"
 	t "v2/team"
 )

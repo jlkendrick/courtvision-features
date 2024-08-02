@@ -13,13 +13,13 @@ import (
 
 func TestInitPopulation(t *testing.T) {
 	start := time.Now()
-	d.InitSchedule("/Users/jameskendrick/Code/cv/stopz/v2/static/schedule.json")
+	d.InitSchedule("/Users/jameskendrick/Code/cv/features/lineup-generation/v2/static/schedule.json")
 
 	bt := team.InitBaseTeamMock("16", 34.0)
 
 	// Create new populations
-	ev1 := p.InitPopulation(bt, 50)
-	ev2 := p.InitPopulation(bt, 50)
+	ev1 := p.InitPopulation(bt, 5)
+	ev2 := p.InitPopulation(bt, 5)
 	
 	// Evolve the populations concurrently
 	var wg sync.WaitGroup
@@ -70,6 +70,21 @@ func TestInitPopulation(t *testing.T) {
 
 	printMemUsage()
 }
+
+func TestEvolve(t *testing.T) {
+	d.InitSchedule("/Users/jameskendrick/Code/cv/features/lineup-generation/v2/static/schedule.json")
+
+	bt := team.InitBaseTeamMock("19", 32.0)
+
+	// Create the EvolutionManager
+	ev := p.InitPopulation(bt, 25)
+
+	// Evolve the population
+	for i := 0; i < 100; i++ {
+		ev.Evolve(bt)
+	}
+}
+
 
 func TestCrossover(t *testing.T) {
 	d.InitSchedule("/Users/jameskendrick/Code/cv/features/lineup-generation/v2/static/schedule.json")

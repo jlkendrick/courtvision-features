@@ -281,14 +281,19 @@ func (c *Chromosome) Mutate(bt *t.BaseTeam, prob float64, rng *rand.Rand) (d.Pla
 func (c *Chromosome) FindRandomPlayerToDrop(rng *rand.Rand) (d.Player, string, int, int) {
 
 	start := 0
+	trials := 0
 	test_start := rng.Intn(len(c.Genes))
-	for start == 0 {
+	for start == 0 && trials < len(c.Genes) {
 		if c.Genes[test_start].Acquisitions > 0 {
 			start = test_start
 			break
 		} else {
 			test_start = rng.Intn(len(c.Genes))
+			trials++
 		}
+	}
+	if start == 0 {
+		return d.Player{}, "", -1, -1
 	}
 
 	player_to_drop := c.Genes[start].NewPlayers[rng.Intn(len(c.Genes[start].NewPlayers))]
