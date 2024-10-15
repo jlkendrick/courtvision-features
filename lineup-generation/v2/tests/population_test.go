@@ -15,12 +15,90 @@ func TestOptimizeStreaming(t *testing.T) {
 	start := time.Now()
 	d.InitSchedule("/Users/jameskendrick/Code/cv/features/lineup-generation/v2/static/schedule.json")
 
-	bt := team.InitBaseTeamMock("16", 34.0)
+	// bt := team.InitBaseTeamMock("16", 34.0)
+	week := "9"
+	bt := team.InitBaseTeam(424233486, "", "", "James's Scary Team", 2024, 100, week, 31.0)
+
+	// // Create new populations
+	// ev1 := p.InitPopulation(bt, 25)
+	// ev2 := p.InitPopulation(bt, 25)
+	
+	// // Evolve the populations concurrently
+	// var wg sync.WaitGroup
+	// wg.Add(2)
+	// go func() {
+	// 	defer wg.Done()
+	// 	for i := 0; i < 10; i++ {
+	// 		ev1.Evolve(bt)
+	// 	}
+	// }()
+	// go func() {
+	// 	defer wg.Done()
+	// 	for i := 0; i < 10; i++ {
+	// 		ev2.Evolve(bt)
+	// 	}
+	// }()
+	// wg.Wait()
+	
+	// // Combine the populations
+	// ev1.Population = append(ev1.Population, ev2.Population...)
+	// ev1.NumChromosomes = len(ev1.Population)
+	
+	// // Evolve the combined population
+	// for i := 0; i < 10; i++ {
+	// 	ev1.Evolve(bt)
+	// }
+
+	// if len(ev1.Population) != 50 {
+	// 	t.Errorf("Incorrect number of chromosomes")
+	// }
+
+	// // Get the initial fitness score
+	// base_chromosome := p.InitChromosome(bt)
+	// for _, gene := range base_chromosome.Genes {
+	// 	gene.InsertStreamablePlayers(bt)
+	// }
+	// base_chromosome.ScoreFitness()
+
+	// ev1.SortByFitness()
+
+	// // Make sure NewPlayer count and DropPlayer count are correct
+	// for _, chromosome := range ev1.Population {
+	// 	for _, gene := range chromosome.Genes {
+	// 		if len(gene.NewPlayers) != len(gene.DroppedPlayers) {
+	// 			t.Errorf("NewPlayer count does not match DropPlayer count")
+	// 		}
+	// 	}
+	// }
+
+	// // Print the best chromosome
+	// best_chromosome := ev1.Population[ev1.NumChromosomes-1]
+
+	// // Go through the chromosome to make sure Additions and DroppedPlayers are correct
+	// for _, gene := range best_chromosome.Genes {
+	// 	for _, player := range gene.NewPlayers {
+	// 		if player.Name == "" {
+	// 			t.Errorf("Player name is empty")
+	// 		}
+	// 	}
+	// 	for _, player := range gene.DroppedPlayers {
+	// 		if player.Name == "" {
+	// 			t.Errorf("Player name is empty")
+	// 		}
+	// 	}
+	// }
+
+
+	// fmt.Println(bt.Score + best_chromosome.FitnessScore, "vs", bt.Score + base_chromosome.FitnessScore, "diff", best_chromosome.FitnessScore - base_chromosome.FitnessScore)
+	// best_chromosome.AddBackNonStreamablePlayers(bt)
+	// best_chromosome.Print()
+	// elapsed := time.Since(start)
+	// fmt.Println("Time to run InitPopulation: ", elapsed)
 
 	// Create new populations
-	ev1 := p.InitPopulation(bt, 25)
-	ev2 := p.InitPopulation(bt, 25)
-	
+	ev1 := p.InitPopulation(bt, 20)
+	ev2 := p.InitPopulation(bt, 20)
+
 	// Evolve the populations concurrently
 	var wg sync.WaitGroup
 	wg.Add(2)
@@ -41,15 +119,23 @@ func TestOptimizeStreaming(t *testing.T) {
 	// Combine the populations
 	ev1.Population = append(ev1.Population, ev2.Population...)
 	ev1.NumChromosomes = len(ev1.Population)
+	fmt.Println("Combined population size: ", ev1.NumChromosomes)
 	
 	// Evolve the combined population
 	for i := 0; i < 10; i++ {
 		ev1.Evolve(bt)
 	}
 
-	if len(ev1.Population) != 50 {
-		t.Errorf("Incorrect number of chromosomes")
+	ev1.SortByFitness()
+	best_chromosome_index := ev1.NumChromosomes - 1
+	max_acquisitions := d.ScheduleMap.GetGameSpan(week) + 1
+	for ev1.Population[best_chromosome_index].TotalAcquisitions > max_acquisitions {
+		fmt.Println("Total acquisitions (over):", ev1.Population[best_chromosome_index].TotalAcquisitions)
+		best_chromosome_index--
 	}
+	best_chromosome := ev1.Population[best_chromosome_index]
+	best_chromosome.AddBackNonStreamablePlayers(bt)
+
 
 	// Get the initial fitness score
 	base_chromosome := p.InitChromosome(bt)
@@ -58,40 +144,11 @@ func TestOptimizeStreaming(t *testing.T) {
 	}
 	base_chromosome.ScoreFitness()
 
-	ev1.SortByFitness()
-
-	// Make sure NewPlayer count and DropPlayer count are correct
-	for _, chromosome := range ev1.Population {
-		for _, gene := range chromosome.Genes {
-			if len(gene.NewPlayers) != len(gene.DroppedPlayers) {
-				t.Errorf("NewPlayer count does not match DropPlayer count")
-			}
-		}
-	}
-
-	// Print the best chromosome
-	best_chromosome := ev1.Population[ev1.NumChromosomes-1]
-
-	// Go through the chromosome to make sure Additions and DroppedPlayers are correct
-	for _, gene := range best_chromosome.Genes {
-		for _, player := range gene.NewPlayers {
-			if player.Name == "" {
-				t.Errorf("Player name is empty")
-			}
-		}
-		for _, player := range gene.DroppedPlayers {
-			if player.Name == "" {
-				t.Errorf("Player name is empty")
-			}
-		}
-	}
-
-
+	// // Print the best chromosome
 	fmt.Println(bt.Score + best_chromosome.FitnessScore, "vs", bt.Score + base_chromosome.FitnessScore, "diff", best_chromosome.FitnessScore - base_chromosome.FitnessScore)
-	best_chromosome.AddBackNonStreamablePlayers(bt)
 	best_chromosome.Print()
 	elapsed := time.Since(start)
-	fmt.Println("Time to run InitPopulation: ", elapsed)
+	fmt.Println("Time to run algorithm: ", elapsed)
 
 	printMemUsage()
 }

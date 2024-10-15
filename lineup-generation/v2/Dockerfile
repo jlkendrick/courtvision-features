@@ -18,7 +18,7 @@ COPY --from=builder /app/exec /app/exec
 
 COPY --from=certs /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 
-COPY ./static/schedule.json /app/static/schedule.json
+COPY ./static/schedule24-25.json /app/static/schedule24-25.json
 
 CMD ["./exec"]
 

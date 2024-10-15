@@ -66,7 +66,7 @@ func main() {
 
 func OptimizeStreaming(req u.ReqBody) u.Response {
 	start := time.Now()
-	d.InitSchedule("./static/schedule.json")
+	d.InitSchedule("./static/schedule24-25.json")
 
 	// League information
 	league_id := req.LeagueId
@@ -106,6 +106,7 @@ func OptimizeStreaming(req u.ReqBody) u.Response {
 	// Combine the populations
 	ev1.Population = append(ev1.Population, ev2.Population...)
 	ev1.NumChromosomes = len(ev1.Population)
+	fmt.Println("Combined population size: ", ev1.NumChromosomes)
 	
 	// Evolve the combined population
 	for i := 0; i < 10; i++ {
@@ -113,7 +114,7 @@ func OptimizeStreaming(req u.ReqBody) u.Response {
 	}
 
 	ev1.SortByFitness()
-	best_chromosome_index := ev1.NumChromosomes-1
+	best_chromosome_index := ev1.NumChromosomes - 1
 	for ev1.Population[best_chromosome_index].TotalAcquisitions > d.ScheduleMap.GetGameSpan(week) + 1 {
 		best_chromosome_index--
 	}
@@ -129,8 +130,8 @@ func OptimizeStreaming(req u.ReqBody) u.Response {
 	base_chromosome.ScoreFitness()
 
 	// // Print the best chromosome
-	// fmt.Println(bt.Score + best_chromosome.FitnessScore, "vs", bt.Score + base_chromosome.FitnessScore, "diff", best_chromosome.FitnessScore - base_chromosome.FitnessScore)
-	// best_chromosome.Print()
+	fmt.Println(bt.Score + best_chromosome.FitnessScore, "vs", bt.Score + base_chromosome.FitnessScore, "diff", best_chromosome.FitnessScore - base_chromosome.FitnessScore)
+	best_chromosome.Print()
 	elapsed := time.Since(start)
 	fmt.Println("Time to run algorithm: ", elapsed)
 

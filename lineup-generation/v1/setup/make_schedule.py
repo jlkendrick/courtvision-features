@@ -7,7 +7,7 @@ def load_json_file(file_path):
         data = json.load(file)
     return data
 
-json_file_path = "/Users/jameskendrick/Code/cv/stopz/src/static/schedule.json"
+json_file_path = "/Users/jameskendrick/Code/cv/features/lineup-generation/v1/static/schedule.json"
 data = load_json_file(json_file_path)
 
 schedule = {}
@@ -67,5 +67,5 @@ for game_date in game_dates:
             games_in_week[game["homeTeam"]["teamTricode"]][0] = True
             games_in_week[game["awayTeam"]["teamTricode"]][0] = True
 
-with open("//Users/jameskendrick/Code/cv/stopz/src/static/schedule.json", "w") as file:
+with open("/Users/jameskendrick/Code/cv/features/lineup-generation/v1/static/schedule.json", "w") as file:
     json.dump(schedule, file, indent=4)

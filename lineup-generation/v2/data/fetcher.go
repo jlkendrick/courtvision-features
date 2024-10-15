@@ -1,11 +1,12 @@
 package data
 
 import (
-	"fmt"
-	"encoding/json"
-	"net/http"
-	"io"
 	"bytes"
+	"math/rand"
+	"encoding/json"
+	"fmt"
+	"io"
+	"net/http"
 	"sync"
 )
 
@@ -89,8 +90,8 @@ func FetchData(league_id int, espn_s2 string, swid string, team_name string, yea
 
 	// List of URLs to send POST requests to
 	urls := []string{
-		"https://cv-backend-su3d2jcjkq-uc.a.run.app/data/get_roster_data",
-		"https://cv-backend-su3d2jcjkq-uc.a.run.app/data/get_freeagent_data",
+		"http://127.0.0.1:8000/data/get_roster_data",
+		"http://127.0.0.1:8000/data/get_freeagent_data",
 	}
 
 	// Response channel to receive responses from goroutines
@@ -117,6 +118,15 @@ func FetchData(league_id int, espn_s2 string, swid string, team_name string, yea
 	responses := make([][]Player, len(urls))
 	for response := range response_chan {
 		responses[response.Index] = response.Players
+	}
+
+	// TEMPORARY: Generate random average points for each player
+	for i, players := range responses {
+		for j, player := range players {
+			player.AvgPoints = rand.Float64() * 60
+			players[j] = player
+		}
+		responses[i] = players
 	}
 
 	return PlayersToMap(responses[0]), responses[1]
