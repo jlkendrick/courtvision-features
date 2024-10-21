@@ -90,8 +90,8 @@ func FetchData(league_id int, espn_s2 string, swid string, team_name string, yea
 
 	// List of URLs to send POST requests to
 	urls := []string{
-		"http://127.0.0.1:8000/data/get_roster_data",
-		"http://127.0.0.1:8000/data/get_freeagent_data",
+		"https://cv-backend-443549036710.us-central1.run.app/data/get_roster_data",
+		"https://cv-backend-443549036710.us-central1.run.app/data/get_freeagent_data",
 	}
 
 	// Response channel to receive responses from goroutines
