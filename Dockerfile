@@ -2,7 +2,7 @@ FROM golang:1.22.4 AS builder
 
 WORKDIR /app
 
-COPY . .
+COPY ./lineup-generation/v2 .
 
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o exec
 
@@ -18,7 +18,7 @@ COPY --from=builder /app/exec /app/exec
 
 COPY --from=certs /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 
-COPY ./static/schedule24-25.json /app/static/schedule24-25.json
+COPY ./lineup-generation/v2/static/schedule24-25.json /app/static/schedule24-25.json
 
 CMD ["./exec"]
 
