@@ -2,7 +2,6 @@ package data
 
 import (
 	"bytes"
-	"math/rand"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -118,15 +117,6 @@ func FetchData(league_id int, espn_s2 string, swid string, team_name string, yea
 	responses := make([][]Player, len(urls))
 	for response := range response_chan {
 		responses[response.Index] = response.Players
-	}
-
-	// TEMPORARY: Generate random average points for each player
-	for i, players := range responses {
-		for j, player := range players {
-			player.AvgPoints = rand.Float64() * 60
-			players[j] = player
-		}
-		responses[i] = players
 	}
 
 	return PlayersToMap(responses[0]), responses[1]
