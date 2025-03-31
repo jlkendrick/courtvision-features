@@ -9,7 +9,7 @@ import (
 )
 
 func TestBTInitWAPI(t *testing.T) {
-	d.InitSchedule("/Users/jameskendrick/Code/cv/stopz/src/static/schedule.json")
+	d.InitSchedule("/Users/jameskendrick/Code/cv/features/lineup-generation/v2/static/schedule24-25.json")
 
 	// Test the InitBaseTeam function
 	league_id := 424233486
@@ -34,7 +34,7 @@ func TestBTInitWAPI(t *testing.T) {
 }
 
 func TestBTInitWOAPI(t *testing.T) {
-	d.InitSchedule("/Users/jameskendrick/Code/cv/stopz/src/static/schedule.json")
+	d.InitSchedule("/Users/jameskendrick/Code/cv/features/lineup-generation/v2/static/schedule24-25.json")
 
 	// Test the InitBaseTeamMock function
 	week := "1"
@@ -76,7 +76,7 @@ func TestBTInitWOAPI(t *testing.T) {
 }
 
 func TestBTFetchData(t *testing.T) {
-	d.InitSchedule("/Users/jameskendrick/Code/cv/stopz/src/static/schedule.json")
+	d.InitSchedule("/Users/jameskendrick/Code/cv/lineup-generation/v2/static/schedule24-25.json")
 
 	// Test the FetchData function
 	league_id := 424233486
@@ -98,7 +98,7 @@ func TestBTFetchData(t *testing.T) {
 }
 
 func TestBTOptimizeSlottingAndStreamablePlayers(t *testing.T) {
-	d.InitSchedule("/Users/jameskendrick/Code/cv/stopz/src/static/schedule.json")
+	d.InitSchedule("/Users/jameskendrick/Code/cv/lineup-generation/v2/static/schedule24-25.json")
 
 	// Test the OptimizeSlotting function
 	week := "1"

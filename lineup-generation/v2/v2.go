@@ -129,7 +129,7 @@ func OptimizeStreaming(req u.ReqBody) u.Response {
 	}
 	base_chromosome.ScoreFitness()
 
-	// // Print the best chromosome
+	// Print the best chromosome
 	fmt.Println(bt.Score + best_chromosome.FitnessScore, "vs", bt.Score + base_chromosome.FitnessScore, "diff", best_chromosome.FitnessScore - base_chromosome.FitnessScore)
 	best_chromosome.Print()
 	elapsed := time.Since(start)
